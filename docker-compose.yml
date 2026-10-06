@@ -1,0 +1,31 @@
+services:
+  # Development: live Flutter web server with the source mounted.
+  # Run: docker compose up dev  -> http://localhost:8080
+  dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+
+  # Production-like: release web build served by nginx.
+  # Run: docker compose up --build web  -> http://localhost:8081
+  web:
+    build:
+      context: .
+      target: web
+    ports:
+      - "8081:80"
+
+  # One-off checks: docker compose run --rm test
+  test:
+    build:
+      context: .
+      target: dev
+    command: sh -c "flutter analyze && flutter test"
+    volumes:
+      - .:/app
