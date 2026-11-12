@@ -9,6 +9,9 @@ services:
       - "8080:8080"
     volumes:
       - .:/app
+      # Container-only .dart_tool/build: keeps root-owned, container-path files off the host.
+      - /app/.dart_tool
+      - /app/build
     stdin_open: true
     tty: true
 
@@ -21,11 +24,18 @@ services:
     ports:
       - "8081:80"
 
-  # One-off checks: docker compose run --rm test
+  # One-off checks, same as CI (.github/workflows/ci.yml): docker compose run --rm test
   test:
     build:
       context: .
       target: dev
-    command: sh -c "flutter analyze && flutter test"
+    command: >-
+      sh -c "flutter pub get --enforce-lockfile
+      && dart format --output=none --set-exit-if-changed .
+      && flutter analyze
+      && flutter test
+      && flutter build web --release"
     volumes:
       - .:/app
+      - /app/.dart_tool
+      - /app/build

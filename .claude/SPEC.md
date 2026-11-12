@@ -108,6 +108,7 @@ firebase/
 .claude/
   SPEC.md, SPEC-<module-id>.md   → specs
   REVIEW.md                      → per-slice change summary (overwritten each slice)
+  tasks/plan.md, tasks/todo.md   → plan and tasks for the current stage (committed)
 ```
 
 Feature folders under `lib/ui/` are `auth`, `household`, `inventory`, `grocery`, `suggestions`, `recipes`, `discover`.
@@ -319,7 +320,7 @@ Acceptance:
 The order is `identity` → `households` → `inventory` → `grocery-list` → `restock-suggestions` ∥ `recipes` → `recipe-discovery`.
 
 1. The user creates `feat/<module-id>-<slice>` off `dev` (Claude provides the command).
-2. The module spec is reviewed, then a plan and tasks (`tasks/plan.md`, `tasks/todo.md`) are approved.
+2. The module spec is reviewed, then a plan and tasks (`.claude/tasks/plan.md`, `.claude/tasks/todo.md`) are approved.
 3. Claude implements one small slice that passes the quality gate, then writes the `REVIEW.md` summary. The user reviews and commits.
 4. The user opens a PR → `dev`, CI is green, Claude can run `/review` on request, and the user squash-merges.
 5. When the module is done, Claude bumps `version: 0.<stage>.0+<build>` in `pubspec.yaml` and drafts the stage PR and tag commands. The user merges `dev` → `main` and tags `v0.<stage>.0` (annotated).

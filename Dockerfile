@@ -21,7 +21,7 @@ RUN git clone --depth 1 --branch ${FLUTTER_VERSION} https://github.com/flutter/f
 FROM flutter-base AS dev
 WORKDIR /app
 COPY pubspec.* ./
-RUN flutter pub get
+RUN flutter pub get --enforce-lockfile
 COPY . .
 EXPOSE 8080
 CMD ["flutter", "run", "-d", "web-server", "--web-hostname", "0.0.0.0", "--web-port", "8080"]
@@ -30,7 +30,7 @@ CMD ["flutter", "run", "-d", "web-server", "--web-hostname", "0.0.0.0", "--web-p
 FROM flutter-base AS build
 WORKDIR /app
 COPY pubspec.* ./
-RUN flutter pub get
+RUN flutter pub get --enforce-lockfile
 COPY . .
 RUN flutter build web --release
 
