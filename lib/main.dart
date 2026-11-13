@@ -35,3 +35,4 @@ class FridgePage extends StatelessWidget {
     );
   }
 }
+void   misformatted( ){}
