@@ -106,9 +106,9 @@ firebase/
   package.json, package-lock.json
 .github/workflows/ci.yml         → CI
 .claude/
-  SPEC.md, SPEC-<module-id>.md   → specs
-  REVIEW.md                      → per-slice change summary (overwritten each slice)
-  tasks/plan.md, tasks/todo.md   → plan and tasks for the current stage (committed)
+  specs/SPEC.md, specs/SPEC-<module-id>.md → specs
+  specs/REVIEW.md                          → per-slice change summary (overwritten each slice)
+  tasks/plan.md, tasks/todo.md             → plan and tasks for the current stage (committed)
 ```
 
 Feature folders under `lib/ui/` are `auth`, `household`, `inventory`, `grocery`, `suggestions`, `recipes`, `discover`.
@@ -273,7 +273,7 @@ Starting point (2026-11-12): GitHub remote `origin`, branches `main` + `dev`, no
 ### Collaboration protocol
 
 - **The user owns every git write**: branches, commits, pushes, PRs, merges, tags, branch protection, GitHub releases. Claude only reads git state (`status`, `diff`, `log`), leaves changes uncommitted, and supplies commands and messages to paste.
-- **Every slice ends with a change summary** in chat and in `.claude/REVIEW.md` (overwritten each slice):
+- **Every slice ends with a change summary** in chat and in `.claude/specs/REVIEW.md` (overwritten each slice):
   1. **What & why**: 2–3 lines tying the slice to its spec section and acceptance criteria.
   2. **Files changed**: clickable paths grouped by layer (models / repositories / view models / widgets / rules / tests / config), one line each on what changed.
   3. **What to look for**: the 2–5 places that most need human eyes (rules, data writes, tricky logic) as `file:line`, plus anything uncertain.
@@ -295,10 +295,10 @@ One PR to `dev`, before any feature code.
 - **Branch protection** (the user sets this in GitHub): on `main` and `dev`, require a PR, require the CI checks to pass, and block force-push and deletion.
 
 Acceptance:
-- [ ] A trivial PR to `dev` runs CI, and CI is green.
+- [x] A trivial PR to `dev` runs CI, and CI is green. *(2026-11-12: shown on PR #1, `dev` → `main`; the trigger doesn't depend on the base branch.)*
 - [ ] A deliberately mis-formatted Dart file makes CI fail at the format step.
-- [ ] Changing `environment.flutter` to another version makes `flutter pub get` fail locally.
-- [ ] `docker compose run --rm test` runs the same checks as CI and passes.
+- [x] Changing `environment.flutter` to another version makes `flutter pub get` fail locally.
+- [x] `docker compose run --rm test` runs the same checks as CI and passes.
 
 ### Stage 1: Environments
 

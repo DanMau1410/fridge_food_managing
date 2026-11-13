@@ -1,6 +1,6 @@
 # Stage 0 Tasks: DevOps Baseline
 
-> Plan: [plan.md](plan.md) · Spec: [SPEC.md › Stage 0](../SPEC.md#stage-0-baseline)
+> Plan: [plan.md](plan.md) · Spec: [SPEC.md › Stage 0](../specs/SPEC.md#stage-0-baseline)
 > Before Task 1 (user): `git switch -c ci/stage-0-baseline dev`
 
 ## Task 1: Pin Flutter, enforce the lockfile, set the stage version
@@ -60,7 +60,7 @@
 
 ## Task 4: REVIEW.md for the slice and the stage
 
-**Description:** Overwrite `.claude/REVIEW.md` with the five-part slice summary. Add a draft PR title and body for `ci/stage-0-baseline` → `dev`, the throwaway mis-format PR commands (Task 6), branch-protection steps (Task 7), a draft `dev` → `main` PR with a rollback note, and the `v0.0.0` annotated-tag commands (Task 8).
+**Description:** Overwrite `.claude/specs/REVIEW.md` with the five-part slice summary. Add a draft PR title and body for `ci/stage-0-baseline` → `dev`, the throwaway mis-format PR commands (Task 6), branch-protection steps (Task 7), a draft `dev` → `main` PR with a rollback note, and the `v0.0.0` annotated-tag commands (Task 8).
 
 **Acceptance criteria:**
 - [x] Every git and GitHub step is a command or click path for the user. Claude runs none of them
@@ -70,17 +70,17 @@
 - [x] The user reads REVIEW.md and can complete Phase 2 from it alone
 
 **Dependencies:** Tasks 1–3
-**Files:** `.claude/REVIEW.md`
+**Files:** `.claude/specs/REVIEW.md`
 **Scope:** XS
 
 ## Phase 2: GitHub (the user)
 
-- [ ] **Task 5**: Push `ci/stage-0-baseline` and open a PR → `dev`. The `flutter` check is green.
-- [ ] **Task 6**: A throwaway branch off `ci/stage-0-baseline` with one mis-formatted line, opened as a draft PR. CI fails at the **format** step. Close it unmerged and delete the branch.
-- [ ] **Task 7**: Protect `dev` and `main`: require a PR, require status check `flutter`, block force-push and deletion. Then squash-merge the Task 5 PR.
-- [ ] **Task 8**: PR `dev` → `main`, merged with a **merge commit**, then `git tag -a v0.0.0` and push the tag.
+- [x] **Task 5**: Push `ci/stage-0-baseline` and open a PR → `dev`. The `flutter` check is green. *Done differently: pushed straight to `dev`, then PR #1 `dev` → `main` was green.*
+- [ ] **Task 6**: A throwaway branch off `ci/stage-0-baseline` with one mis-formatted line, opened as a draft PR. CI fails at the **format** step. Close it unmerged and delete the branch. *Open: no probe PR or failed run exists on GitHub.*
+- [x] **Task 7**: Protect `dev` and `main`: require a PR, require status check `flutter`, block force-push and deletion. Then squash-merge the Task 5 PR. *Done: rulesets `Dev PR` (squash only) and `Main PR` (merge only) require `flutter`; verified 2026-11-12.*
+- [x] **Task 8**: PR `dev` → `main`, merged with a **merge commit**, then `git tag -a v0.0.0` and push the tag. *Done: PR #1 merged; `v0.0.0` is a lightweight tag, kept as is.*
 
 ## Checkpoint B: Stage 0 done
 
-- [ ] The user confirms Tasks 5–8, and Claude ticks the four Stage 0 acceptance boxes in `.claude/SPEC.md`
+- [ ] The user confirms Tasks 5–8, and Claude ticks the four Stage 0 acceptance boxes in `.claude/specs/SPEC.md`
 - [ ] Next: plan `app-foundation` (Stage 1), only when the user asks
