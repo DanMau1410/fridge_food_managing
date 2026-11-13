@@ -1,6 +1,6 @@
 # Implementation Plan: Stage 0, DevOps Baseline
 
-> Source: [SPEC.md › Stage 0: Baseline](../SPEC.md#stage-0-baseline) · Status: **approved 2026-11-12** · 2026-11-12
+> Source: [SPEC.md › Stage 0: Baseline](../specs/SPEC.md#stage-0-baseline) · Status: **approved 2026-11-12** · 2026-11-12
 > Tasks: [todo.md](todo.md)
 
 ## Overview
@@ -40,13 +40,13 @@ One slice, one squash commit. Details are in [todo.md](todo.md).
 - [x] The host gate passes: pub get (enforced) → format → analyze → test → build web
 - [x] `docker compose run --rm test` passes, and afterwards the host still works with no root-owned files
 - [x] Negative checks: a mis-formatted file fails at the format step (host + Docker); a changed pin fails `pub get`
-- [ ] The user reviews and commits
+- [x] The user reviews and commits
 
 ### Phase 2: GitHub (the user, with commands from REVIEW.md)
-- [ ] Task 5: Push the branch, open a PR → `dev`, CI is green
-- [ ] Task 6: A throwaway PR with a mis-formatted file goes red at the format step and is closed unmerged
-- [ ] Task 7: Branch protection on `main` and `dev` (require a PR, require the `flutter` check, block force-push and deletion), then squash-merge
-- [ ] Task 8: Merge `dev` → `main` with a merge commit, then tag `v0.0.0`
+- [x] Task 5: Push the branch, open a PR → `dev`, CI is green
+- [ ] Task 6 (open: no probe PR yet): A throwaway PR with a mis-formatted file goes red at the format step and is closed unmerged
+- [x] Task 7: Branch protection on `main` and `dev` (require a PR, require the `flutter` check, block force-push and deletion), then squash-merge
+- [x] Task 8: Merge `dev` → `main` with a merge commit, then tag `v0.0.0`
 
 ### Checkpoint B: Stage 0 done
 - [ ] All four Stage 0 acceptance boxes in SPEC.md are ticked (Claude ticks them once the user confirms Phase 2)
