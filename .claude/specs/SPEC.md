@@ -295,8 +295,8 @@ One PR to `dev`, before any feature code.
 - **Branch protection** (the user sets this in GitHub): on `main` and `dev`, require a PR, require the CI checks to pass, and block force-push and deletion.
 
 Acceptance:
-- [x] A trivial PR to `dev` runs CI, and CI is green. *(2026-11-12: shown on PR #1, `dev` → `main`; the trigger doesn't depend on the base branch.)*
-- [ ] A deliberately mis-formatted Dart file makes CI fail at the format step.
+- [x] A trivial PR to `dev` runs CI, and CI is green. *(PR #2 into `dev`, green.)*
+- [x] A deliberately mis-formatted Dart file makes CI fail at the format step. *(PR #3: failed at Format; Analyze/Test/Build skipped; closed unmerged.)*
 - [x] Changing `environment.flutter` to another version makes `flutter pub get` fail locally.
 - [x] `docker compose run --rm test` runs the same checks as CI and passes.
 

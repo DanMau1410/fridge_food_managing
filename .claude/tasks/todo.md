@@ -30,7 +30,7 @@
 
 **Verification:**
 - [x] The same five commands, run on the host in order, all exit 0
-- [ ] The real proof is Tasks 5–6 on GitHub
+- [x] The real proof is Tasks 5–6 on GitHub
 
 **Dependencies:** Task 1 (`flutter-version-file` needs the pin)
 **Files:** `.github/workflows/ci.yml`
@@ -76,11 +76,11 @@
 ## Phase 2: GitHub (the user)
 
 - [x] **Task 5**: Push `ci/stage-0-baseline` and open a PR → `dev`. The `flutter` check is green. *Done differently: pushed straight to `dev`, then PR #1 `dev` → `main` was green.*
-- [ ] **Task 6**: A throwaway branch off `ci/stage-0-baseline` with one mis-formatted line, opened as a draft PR. CI fails at the **format** step. Close it unmerged and delete the branch. *Open: no probe PR or failed run exists on GitHub.*
+- [x] **Task 6**: A throwaway branch off `ci/stage-0-baseline` with one mis-formatted line, opened as a draft PR. CI fails at the **format** step. Close it unmerged and delete the branch. *Done: PR #3 failed at Format (Analyze/Test/Build skipped), closed unmerged, branch deleted.*
 - [x] **Task 7**: Protect `dev` and `main`: require a PR, require status check `flutter`, block force-push and deletion. Then squash-merge the Task 5 PR. *Done: rulesets `Dev PR` (squash only) and `Main PR` (merge only) require `flutter`; verified 2026-11-12.*
 - [x] **Task 8**: PR `dev` → `main`, merged with a **merge commit**, then `git tag -a v0.0.0` and push the tag. *Done: PR #1 merged; `v0.0.0` is a lightweight tag, kept as is.*
 
 ## Checkpoint B: Stage 0 done
 
-- [ ] The user confirms Tasks 5–8, and Claude ticks the four Stage 0 acceptance boxes in `.claude/specs/SPEC.md`
+- [x] The user confirms Tasks 5–8, and Claude ticks the four Stage 0 acceptance boxes in `.claude/specs/SPEC.md`
 - [ ] Next: plan `app-foundation` (Stage 1), only when the user asks

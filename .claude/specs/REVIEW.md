@@ -1,111 +1,83 @@
-# Review: Stage 0 close-out (docs only)
+# Review: Stage 0 complete (docs only)
 
 ## 1. What & why
 
-This records the Stage 0 status as checked on GitHub on 2026-11-12, and fixes the paths broken by moving the specs to `.claude/specs/`. Only verified items are ticked. One Stage 0 item, the format probe, is still open; your steps are below.
-
-What GitHub showed:
-- **Merge and tag:** PR #1 (`dev` → `main`) was merged with a merge commit, and CI is green on all 5 runs. `v0.0.0` is on the merge commit.
-- **Rulesets:** `Dev PR` (squash only) and `Main PR` (merge only) are active, with 0 approvals and no bypass.
-- **Required check:** both rulesets now require `flutter` (step A, verified).
-- **Still open:** there's no format-probe PR (no failed run exists).
-- **Kept as is:**
-  - `v0.0.0` is lightweight (made on GitHub), not annotated.
-  - Your "Task Completion" commit (`9dee216`) only exists on the deleted `ci` branch. Its ticks are redone here, limited to what's verified.
+This closes [SPEC.md › Stage 0](SPEC.md#stage-0-baseline). Every acceptance item is now ticked, and each one was checked on GitHub with read-only API calls on 2026-11-12:
+- **PR into `dev`:** PR #2 was squash-merged into `dev`, with CI green on the PR and on the push.
+- **Format probe:** PR #3 failed at **Format**; Analyze, Test and Build web were skipped. It was closed unmerged and its branch deleted.
+- **Rulesets:** `Dev PR` (squash only) and `Main PR` (merge only) both require `flutter`.
+- **Release:** `v0.0.0` is on `main`.
 
 ## 2. Files changed
 
 **Docs**
-- [SPEC.md](SPEC.md):
-  - The project structure lists `.claude/specs/`.
-  - The REVIEW.md path is now `.claude/specs/REVIEW.md`.
-  - Stage 0 acceptance items 1, 3 and 4 are ticked. Item 1 notes that PR #1 went into `main`, not `dev`.
-- [tasks/plan.md](../tasks/plan.md), [tasks/todo.md](../tasks/todo.md):
-  - The spec links point to `../specs/SPEC.md`.
-  - Tasks 5 and 8 are ticked, with notes on how they were done.
-  - Task 7 is ticked (rulesets verified), and Task 6 is marked open, with the reason.
+- [SPEC.md](SPEC.md): acceptance item 2 is ticked (PR #3), and item 1's note now cites PR #2 into `dev`.
+- [tasks/plan.md](../tasks/plan.md): status is "complete", and Task 6 and Checkpoint B are ticked.
+- [tasks/todo.md](../tasks/todo.md): Task 6 (with the evidence), Task 2's GitHub proof, and Checkpoint B are ticked. Only "Next: plan `app-foundation`" stays open.
 
 ## 3. What to look for
 
-1. **Acceptance item 1**, [SPEC.md:298](SPEC.md:298): ticked on the strength of PR #1 (into `main`). If you want it proven literally, the PR for this slice goes into `dev` and proves it.
-2. **Task 6 is still open**, [todo.md:79](../tasks/todo.md:79). Acceptance item 2 stays unticked until the probe PR fails at Format.
+1. [SPEC.md:298-301](SPEC.md:298): all four Stage 0 items, each with its evidence.
 
 ## 4. How to verify
 
 ```bash
-git status --short
+git diff --stat
 ```
-Expected: `M` for `.claude/specs/REVIEW.md`, `.claude/specs/SPEC.md`, `.claude/tasks/plan.md` and `.claude/tasks/todo.md`.
-
-Docs only, so there's no Dart to check. The links resolve from each file's own folder.
+Expected: `.claude/specs/REVIEW.md`, `.claude/specs/SPEC.md`, `.claude/tasks/plan.md` and `.claude/tasks/todo.md`, docs only.
 
 ## 5. Proposed commit message
 
 ```
-docs(spec): record Stage 0 status and fix paths after specs move
+docs(spec): mark Stage 0 complete
 
-Point plan links, the REVIEW.md location and the project structure at
-.claude/specs/. Tick the verified Stage 0 acceptance items (CI green on
-a PR, version pin, Docker parity) and Task 7 (both rulesets require the
-`flutter` check). The format-probe PR is still open.
+Tick the last Stage 0 acceptance item (PR #3 failed at the Format step
+and was closed unmerged) and cite PR #2 for the CI-on-PR item. Mark
+the Stage 0 plan complete.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
 ---
 
-# Closing Stage 0 (your steps, in this order)
+# Landing it
 
-## A. Require the `flutter` check (Task 7): done, verified 2026-11-12
-
-GitHub → **Settings → Rules → Rulesets → `Dev PR`** → tick **Require status checks to pass** → **Add checks** → `flutter` (source: GitHub Actions) → **Save changes**. Repeat for **`Main PR`**.
-
-## B. Land this slice through a PR into `dev` (also proves acceptance item 1)
-
-`dev` now refuses direct pushes, so:
+`dev` only accepts PRs. Either open a small PR now:
 
 ```bash
-git switch -c docs/stage-0-close dev
+git switch -c docs/stage-0-done dev
 ```
 ```bash
 git add .claude/specs/REVIEW.md .claude/specs/SPEC.md .claude/tasks/plan.md .claude/tasks/todo.md && git commit
 ```
 ```bash
-git push -u origin docs/stage-0-close
+git push -u origin docs/stage-0-done
 ```
 ```bash
-gh pr create --base dev --head docs/stage-0-close --title "docs(spec): record Stage 0 status and fix paths after specs move" --web
+gh pr create --base dev --head docs/stage-0-done --title "docs(spec): mark Stage 0 complete" --web
 ```
 
-Wait for `flutter` to go green, then squash-merge.
+…or keep the edits uncommitted and branch `feat/app-foundation-<slug>` off `dev` when Stage 1 starts, so they ride along with the first slice. Either way, nothing needs to go to `main` now: these docs reach `main` with the Stage 1 merge.
 
-## C. Format probe (Task 6, never merged)
+# Cleanup (optional)
 
-```bash
-git switch -c ci/format-probe dev
-```
-```bash
-echo 'void   misformatted( ){}' >> lib/main.dart && git commit -am "test: deliberately mis-formatted (do not merge)"
-```
-```bash
-git push -u origin ci/format-probe
-```
-```bash
-gh pr create --draft --base dev --head ci/format-probe --title "DO NOT MERGE: CI format probe" --body "Stage 0 acceptance: CI must fail at the Format step."
-```
-
-Expected: `flutter` fails at **Format**, and the PR shows merging **blocked** by the required check (this proves A too). Then:
+The merged branch `docs/stage-0-close` still exists on GitHub and on your machine. Use `-D`, because a squash merge doesn't look "merged" to git:
 
 ```bash
-git switch dev && git pull --ff-only
+git branch -D docs/stage-0-close
 ```
 ```bash
-gh pr close ci/format-probe --delete-branch
+git push origin --delete docs/stage-0-close
 ```
-
-Optional cleanup of the stale `origin/ci` ref:
 ```bash
 git fetch --prune
 ```
 
-Tell me once A–C are done. I'll tick acceptance item 2 and Checkpoint B in the first `app-foundation` slice.
+To have GitHub delete merged branches for you, go to **Settings → General → Pull Requests** and tick **Automatically delete head branches**.
+
+# Before Stage 1 (`app-foundation`)
+
+These are from [SPEC-app-foundation.md](SPEC-app-foundation.md), and only you can do them:
+1. Create the Firebase project, and enable Auth (Email/Password + Google) and Firestore.
+2. Run `flutterfire configure --platforms=android,web` (needs the `flutterfire` CLI and your Google login).
+3. Answer the spec's open questions: the shelf-life and default-location table, and whether to split `grainsBread`.
