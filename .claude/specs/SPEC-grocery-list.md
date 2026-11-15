@@ -64,7 +64,7 @@ class GroceryRepository {           // constructed with hid + InventoryRepositor
 6. **AC-GL-6**: A checks "Apples" while B checks "Bread" at the same time. Within ~2 s both devices show both items checked.
 7. **AC-GL-7**: An item checked while offline shows as checked immediately and appears on the other member's device after reconnecting.
 8. **AC-GL-8**: Finish trip with 3 checked items (Milk, Bananas, Frozen peas) and 2 unchecked, on 2026-11-12:
-   - The inventory gains Milk (Fridge, expiring 11-19), Bananas (Fridge, expiring 11-19) and Frozen peas (Freezer, expiring 2027-02-10), all bought 11-12.
+   - The inventory gains Milk (Fridge, expiring 11-19), Bananas (Cabinet, expiring 11-19) and Frozen peas (Freezer, expiring 2027-02-10), all bought 11-12.
    - There are 3 `purchased` history entries.
    - The list holds only the 2 unchecked items.
    - Either everything is written or nothing is (one batch).

@@ -32,7 +32,7 @@ A cross-platform app (Android phone + web for computers in v1) where a **househo
 | Backend | Firebase **Auth** (email/password + Google) and **Cloud Firestore** (real-time listeners, offline persistence). Spark (free) plan, no Cloud Functions |
 | Recipe ideas | TheMealDB public API v1 (`https://www.themealdb.com/api/json/v1/1/`) |
 | i18n | `flutter_localizations` + `intl`, ARB files, `flutter gen-l10n` (EN + ES) |
-| Runtime packages | `firebase_core`, `firebase_auth`, `cloud_firestore`, `provider`, `http`, `intl`, `flutter_localizations` (sdk) |
+| Runtime packages | `firebase_core`, `firebase_auth`, `cloud_firestore`, `provider`, `http`, `intl`, `flutter_localizations` (sdk), `flutter_web_plugins` (sdk; Flutter's generated web plugin registrant imports it, and `firebase_core_web` ≥ 3.12 no longer brings it in) |
 | Dev packages | `flutter_test`, `flutter_lints`, `fake_cloud_firestore`, `firebase_auth_mocks` |
 | Rules tooling | `firebase/` Node project: `firebase-tools`, `@firebase/rules-unit-testing`, Node's built-in `node --test` |
 
@@ -350,7 +350,7 @@ Skipped in v1: Dependabot, Crashlytics/monitoring, staging Firebase project, Pla
 ## Open Questions
 
 1. **Seed recipes**: which ~10 starter recipes (EN + ES)? Claude will propose a list during `recipes` planning.
-2. **Shelf-life defaults** per category (proposed in [SPEC-app-foundation.md](SPEC-app-foundation.md#food-categories)): confirm or adjust.
+2. ~~**Shelf-life defaults**~~: answered 2026-11-14. The table in [SPEC-app-foundation.md](SPEC-app-foundation.md#food-categories) is confirmed, with fruit defaulting to the cabinet.
 3. **Suggestion thresholds**: ≥3 purchases in 60 days, "expiring" = within 2 days, "expiring soon" badge = within 3 days. Tune after real use?
 4. **TheMealDB**: the free test key `1` is meant for development/education. Confirm the terms are acceptable for a personal app, and confirm web CORS during `recipe-discovery`.
 5. **Firebase project**: the user creates it (needs their Google account) and runs `flutterfire configure` before `app-foundation` can finish.
