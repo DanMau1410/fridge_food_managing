@@ -1,131 +1,149 @@
-# Review: Stage 1 · Slice 2, emulators and rules harness
+# Review: Stage 1 · Slice 3, shared domain vocabulary
 
 ## 1. What & why
 
-This delivers Slice 2 of the [Stage 1 plan](../tasks/plan.md) (Tasks 3–5):
-- A `firebase/` project for rules, indexes and the local emulators, defaulting to the safe `demo-fridge` project.
-- Default-deny Firestore rules, with the AC-AF-8 test proving every read and write is refused.
-- A second CI job, `rules`, that runs those tests on every PR and push.
-- A seed of two Auth test users, which `npm run emulators` loads.
+This delivers Slice 3 of the [Stage 1 plan](../tasks/plan.md) (Tasks 6–7): the pure-Dart vocabulary every later module shares ([SPEC-app-foundation](SPEC-app-foundation.md#interface-exposed-to-other-modules)).
+- `itemKey(name)`: how items match across inventory, grocery list and recipes (AC-AF-4)
+- `toDateKey` / `fromDateKey`: the `yyyy-MM-dd` strings for date-only fields (AC-AF-7)
+- `FoodCategory`, `StorageLocation`, `Unit`, `Quantity`: the category table, locations, units and conversions (AC-AF-5, and the values half of AC-AF-6)
 
-Nothing in the app changes. Later modules add their rules and tests here.
+There's no UI and no Firebase yet. The EN/ES labels for these enums come in Slice 4.
 
 ## 2. Files changed
 
-**Firebase project** (all new, in `firebase/`)
-- [firebase.json](../../firebase/firebase.json): emulator ports (Auth 9099, Firestore 8085, UI 4000), matching `lib/main.dart`
-- [.firebaserc](../../firebase/.firebaserc): `default` = `demo-fridge`, `prod` = `fridge-food-managing`
-- [firestore.rules](../../firebase/firestore.rules), [firestore.indexes.json](../../firebase/firestore.indexes.json)
-- [package.json](../../firebase/package.json), [package-lock.json](../../firebase/package-lock.json), [.nvmrc](../../firebase/.nvmrc) (Node 26): `firebase-tools`, `@firebase/rules-unit-testing`, `firebase`, all dev-only
-- [test/foundation.test.js](../../firebase/test/foundation.test.js): AC-AF-8, four denied cases
-- [seed/](../../firebase/seed/): the emulator export (two users, empty Firestore)
-- [README.md](../../firebase/README.md): commands, the seed accounts, how to regenerate the seed
+**Domain** (`lib/domain/`, all new, no Flutter or Firebase imports)
+- [item_key.dart](../../lib/domain/item_key.dart): `itemKey`
+- [date_key.dart](../../lib/domain/date_key.dart): `toDateKey`, `fromDateKey`
+- [models/food_category.dart](../../lib/domain/models/food_category.dart): the 13 categories with healthy flag, default location and shelf life
+- [models/storage_location.dart](../../lib/domain/models/storage_location.dart): fridge, freezer, cabinet
+- [models/unit.dart](../../lib/domain/models/unit.dart): `Dimension`, `Unit` (with base factors), `Quantity`
 
-**CI and tooling**
-- [.github/workflows/ci.yml](../../.github/workflows/ci.yml): the new `rules` job
-- [analysis_options.yaml](../../analysis_options.yaml): excludes `firebase/node_modules/**`
-- [.gitignore](../../.gitignore), [.dockerignore](../../.dockerignore): `firebase/node_modules`
+**Tests** (`test/domain/`, all new, 45 tests)
+- [item_key_test.dart](../../test/domain/item_key_test.dart): AC-AF-4 plus `ñ`, `ü`, `ç`, decomposed accents, tabs/newlines/non-breaking spaces, and blank inputs
+- [date_key_test.dart](../../test/domain/date_key_test.dart): AC-AF-7, padding, leap days, and ten malformed keys
+- [units_test.dart](../../test/domain/units_test.dart): AC-AF-5 plus subtraction, comparison, and mass/volume isolation
+- [food_category_test.dart](../../test/domain/food_category_test.dart): all 13 categories against the spec table
 
-**Specs and plan**
-- [SPEC.md](SPEC.md): the emulator command is `npm run emulators`, the deploy command needs `--project prod`, and the CI note's `.nvmrc` path is `firebase/.nvmrc`.
-- [tasks/plan.md](../tasks/plan.md), [tasks/todo.md](../tasks/todo.md): Slice 1's checkpoint and Tasks 3–5 ticked. Task 5's README moved (see 3.4).
+**Plan**
+- [tasks/plan.md](../tasks/plan.md): Security lines for Slices 3 and 4 (per [dev_rules §9](../dev_rules.md)), and Slice 3 ticked
+- [tasks/todo.md](../tasks/todo.md): Tasks 6–7 ticked
 
 ## 3. What to look for
 
-1. **The rules**, [firestore.rules:9-14](../../firebase/firestore.rules:9). Nothing grants access. `signedIn()` and the `isMember()` stub (always `false`) are there for `households` to fill in.
-2. **The safe default**, [.firebaserc:3](../../firebase/.firebaserc:3). A bare `firebase` command targets `demo-fridge`, which the emulators treat as offline-only. Reaching the real project takes `--project prod`, which is spelled out in SPEC.md's deploy command.
-3. **Java 21 in CI**, [ci.yml:44-48](../../.github/workflows/ci.yml:44). firebase-tools 15 refuses to start the emulators on Java < 21. That's the only pinned version; Node comes from `firebase/.nvmrc`.
-4. **The seed README moved to `firebase/README.md`.** The plan put it in `seed/README.md`, but I proved that every `--export-on-exit=seed` replaces the whole folder and would delete it.
-5. **The analyzer exclude**, [analysis_options.yaml:21](../../analysis_options.yaml:21). firebase-tools ships a Dart Functions template in `node_modules`, which gave 6 analyzer errors locally after `npm ci`. CI's `flutter` job never installs it, so only local runs were affected.
-6. **Test password in plain text** in `firebase/README.md` and `seed/auth_export/accounts.json`. These accounts exist only in the emulator, and the export stores the password readably by design.
-7. **npm 12 skips install scripts** for `protobufjs` and `re2` (its new default). The tests pass both after `npm install` and after a clean `npm ci`.
+1. **The accent map**, [item_key.dart:1-3](../../lib/domain/item_key.dart:1). It covers Spanish, Portuguese, French and German vowels, plus `ñ`, `ç` and `ý`/`ÿ`, and it strips decomposed accents. Letters like `ø`, `ł`, `œ` and `ß` pass through unchanged. That's fine for matching, since they stay consistent, but say if you want them mapped.
+2. **Strict date parsing**, [date_key.dart:11-19](../../lib/domain/date_key.dart:11). `2026-02-30` throws, where a plain `DateTime` would roll it into March 2. Keys come back from Firestore, so a bad one should fail loudly.
+3. **`toDateKey` uses the date's own fields**, [date_key.dart:4](../../lib/domain/date_key.dart:4). It doesn't call `.toLocal()`, so callers pass local times. `DateTime.now()` and Firestore's `Timestamp.toDate()` both already are.
+4. **`null` rather than exceptions across dimensions**, [unit.dart:36-46](../../lib/domain/models/unit.dart:36). `+`, `-` and `compareTo` return `null` for `g` vs `pcs`, the same way `convertTo` does, and callers show "amount unknown". Because of that, `Quantity` isn't `Comparable` and can't be passed straight to `sort()`. Subtraction can go negative, and inventory decides what that means.
+5. **Security:** no security-relevant change. It's pure Dart, with no I/O, rules, dependencies or personal data. Both secret scans print nothing. **Reported for later (not fixed):** `restock-suggestions` uses `itemKey` as a doc id (`stockLevels/{itemKey}`). A name like "Salt/Pepper" gives `salt/pepper`, which Firestore reads as a path, and `.` or `..` are invalid ids. That module's spec needs to handle it, by encoding the id or rejecting those names, when we plan it. The Firestore rules still deny anything outside known paths, so this is a crash risk, not a data leak.
 
 ## 4. How to verify
-
-**First, fix Java in fish.** `archlinux-java` changed the system default, but your fish still points at JDK 17, in two universal variables. Flutter's Android builds aren't affected, because `flutter config` pins its own `jdk-dir`.
-```bash
-set -Ux JAVA_HOME /usr/lib/jvm/java-21-openjdk
-```
-```bash
-set -U fish_user_paths (string match -v /home/danmau/development/jdk/bin $fish_user_paths)
-```
-Open a new terminal, and then `java -version` should say 21.
 
 What I ran (all as expected):
 
 ```bash
-cd firebase && npm ci && npm test
+flutter test test/domain/
 ```
-Expected: `ℹ pass 4`, `ℹ fail 0`, "Script exited successfully (code 0)". With a temporary `match /{document=**} { allow read: if true; }`, both read tests fail with exit code 1 (I reverted it).
+Expected: "All tests passed!" (45).
 
 ```bash
-cd firebase && npx firebase use
+flutter pub get --enforce-lockfile && dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test && flutter build web --release
 ```
-Expected: `demo-fridge`.
+Expected: "No issues found!", "All tests passed!" (46 with the template's widget test), "✓ Built build/web".
 
-```bash
-cd firebase && npm run emulators
-```
-Open http://localhost:4000/auth. Expected: Ana and Bea are listed. Stop with Ctrl+C. The seed files stay unchanged, because this command only imports.
+The secret scans from dev_rules §9 both print nothing.
 
-```bash
-dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test
-```
-Expected: "No issues found!" and "All tests passed!", even with `firebase/node_modules` installed.
+The tests are real: each file failed to compile before its implementation existed. The decomposed-accent case fails if the combining-mark strip is removed.
 
 ```bash
 git status --short
 ```
 Expected:
-- `M`: `.claude/specs/SPEC.md`, `.claude/specs/REVIEW.md`, `.claude/tasks/plan.md`, `.claude/tasks/todo.md`, `.dockerignore`, `.github/workflows/ci.yml`, `.gitignore`, `analysis_options.yaml`
-- `??`: `firebase/`, 13 files (no `node_modules`, no logs)
+- `M`: `.claude/specs/REVIEW.md`, `.claude/tasks/plan.md`, `.claude/tasks/todo.md`
+- `??`: `lib/domain/`, `test/domain/`
 
-**Not verified:** the `rules` job on GitHub. It runs for the first time on this PR.
+**Not verified:** nothing in this slice runs on a device; it's covered by unit tests only.
 
 ## 5. Proposed commit message
 
 ```
-feat(app-foundation): add emulator and rules test harness
+feat(app-foundation): add shared domain vocabulary
 
-Add firebase/ with firestore.rules (default deny, plus signedIn() and
-an isMember() stub for households), indexes, and emulator config
-(Auth 9099, Firestore 8085, UI 4000). .firebaserc defaults to the
-offline demo-fridge project; the real one needs --project prod.
+Add the pure-Dart types and helpers every module shares:
 
-Test the rules with @firebase/rules-unit-testing under node --test:
-AC-AF-8 checks that signed-in and anonymous reads and writes are all
-denied. A new CI job, rules, runs them on Node from firebase/.nvmrc
-and Java 21, which firebase-tools 15 requires.
+- itemKey(name): trimmed, lowercased, whitespace collapsed, Latin
+  accents (precomposed or decomposed) stripped; blank names give ''.
+- toDateKey/fromDateKey: yyyy-MM-dd keys; malformed or impossible
+  dates such as 2026-02-30 throw FormatException instead of rolling
+  over.
+- FoodCategory with each category's healthy flag, default location
+  and shelf life from the spec table (fruit defaults to the cabinet).
+- StorageLocation, Unit with dimension and base factor, and Quantity
+  with convertTo, +, - and compareTo, which return null across
+  dimensions.
 
-Seed the Auth emulator with two test users (ana@fridge.test,
-bea@fridge.test), loaded by npm run emulators and documented in
-firebase/README.md. Keep firebase-tools' bundled Dart template out
-of flutter analyze.
+Table tests cover AC-AF-4, AC-AF-5, AC-AF-6 (values) and AC-AF-7,
+plus abuse cases for blank names and bad date keys.
 
 Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
 ```
 
-## Landing it
+## 6. PR handoff
+
+**What was done**
+- `itemKey`, the date-key helpers, and the category, location, unit and quantity types in `lib/domain/`
+- 45 table tests in `test/domain/` for AC-AF-4 to AC-AF-7, including abuse cases
+- Security lines added to the plan for Slices 3 and 4
+
+**Branch (`--head`):** `feat/app-foundation-domain`
+
+**PR title:** `feat(app-foundation): add shared domain vocabulary`
+
+**PR description:**
+```markdown
+Slice 3 of Stage 1 (`app-foundation`): the shared, pure-Dart vocabulary later modules build on. No UI or Firebase changes.
+
+## What's in it
+- `itemKey(name)`: how items match across inventory, groceries and recipes (trim, lowercase, collapse whitespace, strip Latin accents). Blank names give `''`.
+- `toDateKey` / `fromDateKey`: `yyyy-MM-dd` for date-only fields. Malformed or impossible keys (e.g. `2026-02-30`) throw.
+- `FoodCategory` (13 values with healthy flag, default location, shelf life), `StorageLocation`, `Unit` and `Quantity` (conversion, `+`/`-`/compare within a dimension, `null` across dimensions).
+
+## Acceptance criteria
+- [x] AC-AF-4: `itemKey` table, plus ñ/ü/ç, decomposed accents, odd whitespace
+- [x] AC-AF-5: conversions, cross-dimension `null`, `500 g + 1 kg`
+- [x] AC-AF-6 (values): all 13 categories match the spec table (labels come in Slice 4)
+- [x] AC-AF-7: date keys round-trip; malformed keys throw
+
+## Security
+No security-relevant change: pure Dart, no I/O, rules, dependencies or personal data. Noted for `restock-suggestions`: `stockLevels/{itemKey}` needs doc-id-safe keys (names containing `/`).
+
+## Checks
+- `flutter test test/domain/`: 45 passed
+- Quality gate green locally (format, analyze, test, web build)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+```
+
+**Commands**
 
 ```bash
-git switch -c feat/app-foundation-emulator dev
+git switch -c feat/app-foundation-domain dev
 ```
 ```bash
-git add .claude/specs .claude/tasks .dockerignore .gitignore .github/workflows/ci.yml analysis_options.yaml firebase && git commit
+git add .claude/specs/REVIEW.md .claude/tasks lib/domain test/domain && git commit
 ```
 ```bash
-git push -u origin feat/app-foundation-emulator
+git push -u origin feat/app-foundation-domain
 ```
 ```bash
-gh pr create --base dev --head feat/app-foundation-emulator --title "feat(app-foundation): add emulator and rules test harness" --web
+gh pr create --base dev --head feat/app-foundation-domain --title "feat(app-foundation): add shared domain vocabulary" --web
 ```
-
-Once `flutter` and `rules` are both green, squash-merge. Then:
+Paste the description above into the browser form. Once `flutter` and `rules` are green, squash-merge. Then:
 
 ```bash
-git switch dev && git pull --ff-only && git branch -D feat/app-foundation-emulator
+git switch dev && git pull --ff-only && git branch -D feat/app-foundation-domain
+```
+```bash
+git push origin --delete feat/app-foundation-domain
 ```
 
-**Then make `rules` required.** GitHub only offers checks that have already run. Go to Settings → Rules → Rulesets, open `Dev PR`, find "Require status checks to pass", and add `rules` next to `flutter`. Do the same for `Main PR`. When you tell me it's done, I'll confirm it with a read-only `gh api` call.
-
-**Next:** Slice 3 (`itemKey`, date keys, and the category, location and unit enums), pure Dart, once you've reviewed and merged this.
+**Next:** Slice 4, the English/Spanish shell and the Stage 1 close. It needs an Android AVD for its last manual check.

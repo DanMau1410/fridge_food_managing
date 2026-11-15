@@ -82,17 +82,21 @@ The details are in [todo.md](todo.md).
 - [x] You add `rules` as a required check in both rulesets
 
 ### Slice 3: `feat/app-foundation-domain`, shared vocabulary
-- [ ] Task 6: `itemKey` and date keys
-- [ ] Task 7: `FoodCategory`, `StorageLocation`, `Unit`, `Quantity`
+- [x] Task 6: `itemKey` and date keys
+- [x] Task 7: `FoodCategory`, `StorageLocation`, `Unit`, `Quantity`
+
+**Security:** no trust boundary yet: pure Dart, no I/O. Later, user-typed names reach Firestore through `itemKey`, and date keys are parsed back from Firestore. Abuse cases tested first: blank or whitespace-only names give `''` (callers reject it), decomposed accents and odd whitespace give the same key, and malformed or impossible date keys (`2026-02-30`, full-width digits) throw instead of being normalized. Reported for `restock-suggestions`: `stockLevels/{itemKey}` uses the key as a doc id, so a name containing `/` (or a key of `.`/`..`) needs handling there.
 
 **Checkpoint 3:**
-- [ ] AC-AF-4, 5, 6 (values) and 7 pass as table tests
-- [ ] The gate is green
+- [x] AC-AF-4, 5, 6 (values) and 7 pass as table tests
+- [x] The gate is green
 
 ### Slice 4: `feat/app-foundation-shell`, English/Spanish shell and stage close
 - [ ] Task 8: Localization setup and enum labels
 - [ ] Task 9: App shell and theme, replacing the template
 - [ ] Task 10: Stage close: version `0.1.0+2`, spec ticks, stage PR and tag commands
+
+**Security:** none: UI only. No Firestore calls, no new inputs. The template removal deletes code.
 
 **Checkpoint 4: Stage 1 done:**
 - [ ] The gate is green, `docker compose run --rm test` is green, and both CI jobs are green (AC-AF-9)
