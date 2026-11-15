@@ -51,7 +51,7 @@ Also update SPEC-app-foundation's scope: `dependencies.dart` moves to `identity`
 
 ### Checkpoint 1
 - [x] Tasks 1–2 verified, and `git status` shows only the intended files
-- [ ] REVIEW written → you commit, open a PR into `dev`, CI is green, you squash-merge
+- [x] REVIEW written → you commit, open a PR into `dev`, CI is green, you squash-merge
 
 ---
 
@@ -73,13 +73,13 @@ Also:
 - Change the spec's deploy command to `--project prod`.
 
 **Acceptance criteria:**
-- [ ] `cd firebase && npm ci && npm test` passes, with four denied cases: unauthenticated read, unauthenticated write, authenticated read and authenticated write to `/anything/x`
-- [ ] Temporarily adding `allow read: if true;` makes the test fail (then revert)
-- [ ] A bare `npx firebase use` inside `firebase/` reports `demo-fridge`
+- [x] `cd firebase && npm ci && npm test` passes, with four denied cases: unauthenticated read, unauthenticated write, authenticated read and authenticated write to `/anything/x`
+- [x] Temporarily adding `allow read: if true;` makes the test fail (then revert)
+- [x] A bare `npx firebase use` inside `firebase/` reports `demo-fridge`
 
 **Verification:**
-- [ ] `cd firebase && npm ci && npm test`
-- [ ] The negative check above
+- [x] `cd firebase && npm ci && npm test`
+- [x] The negative check above
 
 **Dependencies:** JDK 21 (you)
 **Files:** `firebase/firebase.json`, `firebase/.firebaserc`, `firebase/firestore.rules`, `firebase/firestore.indexes.json`, `firebase/package.json`, `firebase/package-lock.json`, `firebase/.nvmrc`, `firebase/test/foundation.test.js`, `.gitignore`, `.dockerignore`, `.claude/specs/SPEC.md`
@@ -95,11 +95,11 @@ Also:
 
 **Acceptance criteria:**
 - [ ] The job `rules` runs next to `flutter` on the PR and is green
-- [ ] No Node or Java version is hard-coded except Java 21
+- [x] No Node or Java version is hard-coded except Java 21
 
 **Verification:**
 - [ ] The PR's checks show `flutter` and `rules` both green
-- [ ] Local equivalent: Task 3's commands
+- [x] Local equivalent: Task 3's commands
 
 **Dependencies:** Task 3
 **Files:** `.github/workflows/ci.yml`
@@ -113,18 +113,18 @@ Also:
 3. Export them to `firebase/seed/`.
 4. Add the script `emulators` = `firebase emulators:start --only auth,firestore --import=seed`. It imports only, so dev data never leaks into the seed.
 
-The test emails and password go in a 3-line `firebase/seed/README.md`.
+The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: every `--export-on-exit=seed` replaces the whole folder.)
 
 **Acceptance criteria:**
-- [ ] `cd firebase && npm run emulators`, then open http://localhost:4000 → Authentication: both users are listed
-- [ ] Restarting the emulators shows the same two users and nothing else
+- [x] `cd firebase && npm run emulators`, then open http://localhost:4000 → Authentication: both users are listed
+- [x] Restarting the emulators shows the same two users and nothing else
 
 **Verification:**
-- [ ] The manual check above
-- [ ] `npm test` is still green
+- [x] The manual check above
+- [x] `npm test` is still green
 
 **Dependencies:** Task 3
-**Files:** `firebase/seed/**` (the export), `firebase/seed/README.md`, `firebase/package.json`
+**Files:** `firebase/seed/**` (the export), `firebase/README.md`, `firebase/package.json`, `analysis_options.yaml` (excludes `firebase/node_modules`, where firebase-tools ships a Dart template)
 **Scope:** S
 
 ### Checkpoint 2

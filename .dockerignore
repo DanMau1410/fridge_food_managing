@@ -8,3 +8,4 @@ ios/Pods
 macos/Pods
 .flutter-plugins
 .flutter-plugins-dependencies
+firebase/node_modules

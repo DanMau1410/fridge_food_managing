@@ -1,0 +1,14 @@
+{
+  "name": "fridge-firebase",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "firebase emulators:exec --only firestore \"node --test test/*.test.js\"",
+    "emulators": "firebase emulators:start --only auth,firestore --import=seed"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
+    "firebase": "^13.3.0",
+    "firebase-tools": "^15.36.0"
+  }
+}
