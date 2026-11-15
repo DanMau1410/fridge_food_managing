@@ -10,6 +10,7 @@ Let each person have their own account (email/password or Google) and a unique u
 ## Scope
 
 **In**
+- `lib/config/dependencies.dart` (moved here from `app-foundation`): the `MultiProvider` that registers this module's repositories and view models. Later modules extend it.
 - Sign up and sign in with email + password.
 - Sign in with Google: popup on web, `signInWithProvider` on Android.
 - Password reset email.

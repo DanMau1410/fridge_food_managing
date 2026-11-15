@@ -1,7 +1,7 @@
 # Module Spec: `app-foundation`
 
 > Depends on: — · Used by: every module · Delivery: DevOps Stage 1 (see [SPEC.md](SPEC.md#stage-1-environments))
-> Status: draft, awaiting review
+> Status: approved · open questions answered 2026-11-14
 
 ## Objective
 
@@ -18,9 +18,9 @@ No user-visible feature yet beyond the empty, navigable shell.
 
 **In**
 - `lib/main.dart`: `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`.
-  - If `const bool.fromEnvironment('USE_EMULATOR')`, connect Auth to `:9099` and Firestore to `:8085`. The host is `localhost` on web and `10.0.2.2` on Android.
+  - If `const bool.fromEnvironment('USE_EMULATOR')`, connect Auth to `:9099` and Firestore to `:8085`. The host is `localhost` on web and `10.0.2.2` on Android. Passing `localhost` covers both, because the plugins map it to `10.0.2.2` on Android.
   - Enable Firestore persistence on web.
-- `lib/config/dependencies.dart`: the `MultiProvider` that later modules extend.
+- `lib/config/dependencies.dart`: **moved to `identity`** (decided 2026-11-14), where the first repository gets registered. Here it would have nothing to provide.
 - `lib/ui/core/app_shell.dart`: three destinations: **Food** (inventory), **Groceries**, **Recipes**.
   - `NavigationBar` below 840 px wide, `NavigationRail` at 840 px and above.
   - App-bar action for **Household & account** (placeholder screen until `identity` and `households`).
@@ -46,12 +46,12 @@ No user-visible feature yet beyond the empty, navigable shell.
 
 ## Food categories
 
-`FoodCategory` is the single source of truth for each category's healthy flag, default location and default shelf life. The defaults below are proposals; see Open Questions.
+`FoodCategory` is the single source of truth for each category's healthy flag, default location and default shelf life. The defaults below were confirmed on 2026-11-14 (fruit moved to the cabinet).
 
 | Value | EN | ES | Healthy | Default location | Default shelf life |
 |---|---|---|---|---|---|
 | `vegetables` | Vegetables | Verduras | yes | fridge | 7 d |
-| `fruit` | Fruit | Fruta | yes | fridge | 7 d |
+| `fruit` | Fruit | Fruta | yes | cabinet | 7 d |
 | `meat` | Meat | Carne | no | fridge | 3 d |
 | `fish` | Fish & seafood | Pescado y mariscos | yes | fridge | 2 d |
 | `dairyEggs` | Dairy & eggs | Lácteos y huevos | no | fridge | 7 d |
@@ -72,14 +72,14 @@ No user-visible feature yet beyond the empty, navigable shell.
 
 - `itemKey`, `FoodCategory` (+ `healthy`, `defaultLocation`, `defaultShelfLifeDays`), `StorageLocation`, `Unit`, `Quantity`, `toDateKey`/`fromDateKey`
 - `AppShell` with slots for each section's screen, and the account action
-- `dependencies.dart`, the place where each module registers its repositories and view models
+- `dependencies.dart` is created by `identity` (see Scope)
 - `firestore.rules` helpers: `signedIn()` and `isMember(hid)`. `isMember` is a stub until `households` fills it in.
 
 ## Acceptance criteria
 
 1. **AC-AF-1**: On Android and web the app launches into the shell. It shows Food, Groceries and Recipes labels in the device language (English or Spanish), and English on any other device language.
 2. **AC-AF-2**: Window width < 840 px shows a bottom `NavigationBar`; ≥ 840 px shows a `NavigationRail`. Switching destinations keeps each tab's state.
-3. **AC-AF-3**: With `--dart-define=USE_EMULATOR=true`, Firestore and Auth calls hit the emulator (visible in the Emulator UI). Without the flag the app uses the prod `firebase_options.dart`.
+3. **AC-AF-3**: With `--dart-define=USE_EMULATOR=true`, Firestore and Auth calls hit the emulator (visible in the Emulator UI). Without the flag the app uses the prod `firebase_options.dart`. *Stage 1 makes no Firebase calls, so the Emulator UI part is checked at Stage 2's first sign-up (AC-ID-1). Stage 1 checks for a clean startup with and without the flag.*
 4. **AC-AF-4**: `itemKey`:
    - `"  Tomates "` → `"tomates"`
    - `"Jalapeño"` → `"jalapeno"`
@@ -109,5 +109,6 @@ No user-visible feature yet beyond the empty, navigable shell.
 
 ## Open questions
 
-- Confirm or adjust the shelf-life defaults and default locations above. For example, should fruit default to the cabinet?
-- Should `grainsBread` be split into "Bread" (short shelf life) and "Grains & pasta" (none)? Proposed: keep one category for v1.
+None. Answered 2026-11-14:
+- Shelf-life defaults and default locations: confirmed as in the table, except **fruit defaults to the cabinet**.
+- `grainsBread`: kept as one category for v1.

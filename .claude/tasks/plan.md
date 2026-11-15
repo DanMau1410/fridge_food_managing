@@ -1,69 +1,123 @@
-# Implementation Plan: Stage 0, DevOps Baseline
+# Implementation Plan: Stage 1, `app-foundation`
 
-> Source: [SPEC.md › Stage 0: Baseline](../specs/SPEC.md#stage-0-baseline) · Status: **complete 2026-11-12** · 2026-11-12
-> Tasks: [todo.md](todo.md)
+> Source: [SPEC-app-foundation.md](../specs/SPEC-app-foundation.md), [SPEC.md › Stage 1](../specs/SPEC.md#stage-1-environments) · Status: **approved 2026-11-14**
+> Tasks: [todo.md](todo.md) · Stage 0's plan is in git history (tag `v0.0.0`)
 
 ## Overview
 
-This is one PR into `dev`, before any feature code. It makes every later slice **stable** (CI must be green), **reproducible** (the same Flutter version and locked deps on the host, in Docker and in CI) and **backtrackable** (squash-merge per slice, a merge commit and tag per stage). The app itself doesn't change. The template `FridgePage` stays until `app-foundation`.
+This replaces the template with the shell every module plugs into:
+- Firebase on Android and web, with an emulator switch
+- the security-rules test harness, plus its CI job
+- the shared food vocabulary (categories, locations, units, item keys)
+- English/Spanish navigation between Food, Groceries and Recipes
 
-## Starting point (verified 2026-11-12)
+The work is four slices. Each slice gets its own `feat/app-foundation-*` branch and is squash-merged into `dev`. The stage ends with a merge of `dev` → `main` and the tag `v0.1.0`.
 
-- Local Flutter 3.47.6 / Dart 3.13.5, matching the Dockerfile's `ARG FLUTTER_VERSION=3.47.6`. Docker 29.9 and Compose v5.6 are installed.
-- `pubspec.yaml` has no `environment.flutter` yet, `version: 1.0.0+1`, and `pubspec.lock` is committed.
-- There's no `.github/`. The Compose `test` service runs only `flutter analyze && flutter test`, and the Dockerfile runs a plain `flutter pub get`.
-- `dart format --set-exit-if-changed .` is already clean.
-- Probe: an exact pin `flutter: 3.47.5` **and** `flutter: 3.48.0` both make `flutter pub get` fail on 3.47.6, so the pin rejects other versions in both directions.
+## Starting point (verified 2026-11-14)
+
+- **Uncommitted on `dev`:**
+  - `flutterfire configure` output: `lib/firebase_options.dart`, `android/app/google-services.json`, a top-level `firebase.json`, and the Google Services Gradle plugin pinned at **4.3.15** (the latest is 4.6.0), next to Android build tooling (AGP) 9.1
+  - `firebase_core` 5.1.0 and `flutter_web_plugins` (sdk)
+  - the spec edits with your answers folded in
+- **Quality gate:** green with all of the above (format, analyze, test, web build). **The Android build hasn't been tried.**
+- **Flutter tooling:**
+  - Flutter 3.47.6. Its default Android minSdk is 24, which matches `firebase_core` 5's minimum.
+  - gen-l10n writes its output into `lib/l10n/` (the synthetic package was removed), and `flutter pub get` regenerates it.
+- **Firebase and Node:** Node 26.13, firebase-tools 15.36 (installed globally), `@firebase/rules-unit-testing` 6.0.0 (needs `firebase` ^13).
+- **Java 17 — but firebase-tools 15 refuses Java below 21 for the emulators** (`MIN_SUPPORTED_JAVA_MAJOR_VERSION = 21`).
+- **Devices:**
+  - Android SDK 36, but no emulator image (AVD) and no phone connected
+  - no Chrome, so web runs use `-d web-server` and any browser
 
 ## Architecture decisions
 
-- **One version source for CI.** `environment.flutter: 3.47.6` (exact) in `pubspec.yaml`, which `subosito/flutter-action` reads through `flutter-version-file` (its README requires an exact version). The Dockerfile `ARG` stays the second copy. A mismatch fails `pub get` inside the Docker build, so it can't drift silently.
-- **CI uses one named step per check** (pub get → format → analyze → test → build web), so a failure names its step (Stage 0 acceptance: "fails at the format step"). The Docker `test` service runs the same five commands in one `sh -c`. `shortcut:` the command list lives in two places. Extract a shared script if they ever drift.
-- **Actions pinned by major tag** (`actions/checkout@v7`, `subosito/flutter-action@v2`), not by commit SHA. There's no Dependabot in v1, so nothing would ever bump a SHA pin. The workflow token gets `permissions: contents: read`.
-- **The lockfile is enforced everywhere:** CI, the Docker `test` command, and both `pub get` lines in the Dockerfile.
-- **Docker bind-mount isolation.** `dev` and `test` mount the repo at `/app`. Anonymous volumes over `/app/.dart_tool` and `/app/build` keep the container (which runs as root, with `/opt/flutter` and `/root/.pub-cache` paths) from overwriting the host's `package_config.json` or leaving root-owned files behind.
-- **Branch:** `ci/stage-0-baseline` off `dev`. Stage 0 has no module id, and `ci:` is its commit type.
-- **Stage version:** `version: 0.0.0+1` and tag `v0.0.0`, following the spec's `0.<stage>.0` scheme. The build number stays `1` because nothing has been released yet.
-- **Skipped on purpose:** matrix builds, an Android APK in CI (built at release time from the tag), run-cancelling `concurrency`, caching beyond `cache: true`, actionlint. These are not in the spec.
+- **Slices run in risk order.**
+  1. Firebase in the app: this lands the pending FlutterFire files and proves the Android build.
+  2. The emulator and rules harness.
+  3. The pure domain code.
+  4. Localization and the shell.
+- **Gradle plugin:** build a debug APK with FlutterFire's 4.3.15 first, and bump to 4.6.0 only if that fails.
+- **The emulator switch lives in `main.dart`.** One `const bool.fromEnvironment('USE_EMULATOR')`, with host `localhost` on web and `10.0.2.2` on Android. Firestore settings (web persistence) are set before connecting to the emulator. A `debugPrint` names the emulator host.
+- **AC-AF-3 can't be fully checked in Stage 1.** Its "visible in the Emulator UI" part needs a Firestore or Auth call, and Stage 1 makes none. So:
+  - Stage 1 checks that startup is clean with and without the flag.
+  - The end-to-end check happens at Stage 2's first sign-up (AC-ID-1).
+- **`.firebaserc` defaults to `demo-fridge`, with the alias `prod` → `fridge-food-managing`.**
+  - A bare `firebase` command in `firebase/` can only reach the emulator project.
+  - Deploys must name the project (`--project prod`), so the spec's deploy command gets updated.
+- **Two `firebase.json` files:**
+  - FlutterFire's, at the top level, used only by `flutterfire configure`.
+  - The emulator and rules config, in `firebase/firebase.json` as the spec says. npm scripts always run from inside `firebase/`.
+- **The seed (`firebase/seed/`) is two Auth test users, emulator only.** `identity`, `households` and `inventory` each add their own documents once those data shapes exist, rather than guessing them now.
+- **Enum labels go in `lib/ui/core/labels.dart`, not `lib/domain/`.** They need `AppLocalizations`, which is Flutter code, and the spec keeps `domain/` free of Flutter imports.
+- **`lib/config/dependencies.dart` and `provider` move to Stage 2 (`identity`)**, where the first repository gets registered. In Stage 1, the `MultiProvider` would have nothing to provide. The spec scope gets updated in Slice 1.
+- **Generated localization files are committed**, with `format: true` in `l10n.yaml` so the CI format check passes.
+- **`Quantity`:**
+  - The amount is a `double`, and each `Unit` has a dimension (count, mass or volume) and a factor to its base unit.
+  - Comparing two quantities returns `int?`, where `null` means "not comparable".
+  - Tests use `closeTo` to allow for floating-point rounding.
+- **`itemKey` strips accents** with a small built-in map of Latin accented letters; no new package. A `// shortcut:` comment marks that limit.
+- **Version:** `0.1.0+2` at the end of the stage, tagged `v0.1.0`.
 
 ## Task list
 
-One slice, one squash commit. Details are in [todo.md](todo.md).
+The details are in [todo.md](todo.md).
 
-### Phase 1: Baseline (Claude, uncommitted for review)
-- [x] Task 1: Pin Flutter, enforce the lockfile, set the stage version
-- [x] Task 2: CI workflow, job `flutter`
-- [x] Task 3: Docker `test` service = CI checks, with the bind-mount fix
-- [x] Task 4: `REVIEW.md`: slice summary, commit message, PR bodies, tag commands, branch-protection steps
+### Slice 1: `feat/app-foundation-firebase`, Firebase in the app
+- [x] Task 1: Android debug build with FlutterFire's Gradle setup
+- [x] Task 2: Initialize Firebase, emulator switch, web persistence
 
-### Checkpoint A: Local gate (before handing over)
-- [x] The host gate passes: pub get (enforced) → format → analyze → test → build web
-- [x] `docker compose run --rm test` passes, and afterwards the host still works with no root-owned files
-- [x] Negative checks: a mis-formatted file fails at the format step (host + Docker); a changed pin fails `pub get`
-- [x] The user reviews and commits
+**Checkpoint 1:**
+- [x] The gate is green and a debug APK builds
+- [x] A `web-server` run is clean with and without `USE_EMULATOR`
+- [ ] REVIEW written → you commit, open a PR, squash-merge
 
-### Phase 2: GitHub (the user, with commands from REVIEW.md)
-- [x] Task 5: Push the branch, open a PR → `dev`, CI is green
-- [x] Task 6: A throwaway PR with a mis-formatted file goes red at the format step and is closed unmerged
-- [x] Task 7: Branch protection on `main` and `dev` (require a PR, require the `flutter` check, block force-push and deletion), then squash-merge
-- [x] Task 8: Merge `dev` → `main` with a merge commit, then tag `v0.0.0`
+### Slice 2: `feat/app-foundation-emulator`, rules harness (needs JDK 21)
+- [ ] Task 3: `firebase/` project with default-deny rules and the AC-AF-8 test
+- [ ] Task 4: CI job `rules`
+- [ ] Task 5: Seed two Auth users, plus `npm run emulators`
 
-### Checkpoint B: Stage 0 done
-- [x] All four Stage 0 acceptance boxes in SPEC.md are ticked (Claude ticks them once the user confirms Phase 2)
+**Checkpoint 2:**
+- [ ] `cd firebase && npm test` is green locally and in CI
+- [ ] The Emulator UI shows the seed users
+- [ ] You add `rules` as a required check in both rulesets
+
+### Slice 3: `feat/app-foundation-domain`, shared vocabulary
+- [ ] Task 6: `itemKey` and date keys
+- [ ] Task 7: `FoodCategory`, `StorageLocation`, `Unit`, `Quantity`
+
+**Checkpoint 3:**
+- [ ] AC-AF-4, 5, 6 (values) and 7 pass as table tests
+- [ ] The gate is green
+
+### Slice 4: `feat/app-foundation-shell`, English/Spanish shell and stage close
+- [ ] Task 8: Localization setup and enum labels
+- [ ] Task 9: App shell and theme, replacing the template
+- [ ] Task 10: Stage close: version `0.1.0+2`, spec ticks, stage PR and tag commands
+
+**Checkpoint 4: Stage 1 done:**
+- [ ] The gate is green, `docker compose run --rm test` is green, and both CI jobs are green (AC-AF-9)
+- [ ] Manual checks: web in English, Spanish and a fallback language; the Android emulator (needs an AVD); a narrow and a wide window
+- [ ] You merge `dev` → `main` and tag `v0.1.0`
 
 ## Risks and mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
-| A Docker run overwrites the host's `.dart_tool/package_config.json` with container paths or leaves root-owned files | Med: the host IDE/tests break until `pub get` or `sudo rm` | Anonymous volumes (Task 3). The check is that `find . -user root` is empty and host `flutter test` works right after a Docker run |
-| Branch protection also blocks the user's own direct pushes to `dev`/`main` | Med: changes the workflow | That's the intent. The "Do not allow bypassing" setting decides whether admins can override. Set it consciously |
-| The `flutter` check isn't selectable in protection settings until it has run once | Low | Order the steps: open the PR first (CI runs), then add protection |
-| `dart format .` later flags generated files (`firebase_options.dart`, l10n) | Low: Stage 1 | Format them once after generating. Revisit in `app-foundation` |
-| A web release build on every PR slows CI | Low | `cache: true`. Accept a few minutes per run |
+| Java 17 locally, but the emulators need 21 | High: Slice 2 can't run locally | You install JDK 21 before Slice 2 (see Prerequisites). CI already uses 21 |
+| Google Services plugin 4.3.15 with AGP 9.1 | Med: the Android build may fail | Task 1 builds first, then bumps to 4.6.0 if needed |
+| No Android emulator image or phone | Med: the Android half of AC-AF-1 can't be checked | You create an AVD before Checkpoint 4. `10.0.2.2` only works from the emulator; a physical phone would need the PC's LAN IP (out of scope for v1) |
+| `firebase` run from the repo root picks FlutterFire's `firebase.json` | Low | Always use the npm scripts in `firebase/` (the spec's commands already `cd firebase`) |
+| Generated code fails the format check | Low | `format: true` for gen-l10n. `firebase_options.dart` is already formatted |
+| A dev run without the flag talks to production | Low: production Firestore currently denies everything | Always pass the flag in development. Tests never point at production (spec) |
+
+## Prerequisites (you)
+
+1. **Before Slice 2:** install JDK 21 and make it the default. On CachyOS: `sudo pacman -S jdk21-openjdk`, then `sudo archlinux-java set java-21-openjdk`. Android builds work on 21 too.
+2. **Before Checkpoint 4:** an Android emulator image (Android Studio → Device Manager → Create device), or a phone with USB debugging for the non-emulator checks.
 
 ## Open questions
 
-All resolved 2026-11-12 (plan approved as proposed):
-1. Stage 0 is released as `0.0.0+1`, tag `v0.0.0`.
-2. The plan is committed with the slice. The user moved it to `.claude/tasks/`.
-3. The pending 3-line `.claude/REVIEW.md` edit was superseded by the Task 4 overwrite.
+All resolved 2026-11-14 (plan approved as proposed):
+1. Fruit defaults to the cabinet. Confirmed.
+2. The seed is two Auth users in Stage 1, and later modules add their own data.
+3. `dependencies.dart` and `provider` move to Stage 2.

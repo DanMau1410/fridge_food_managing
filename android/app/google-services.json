@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "868015333907",
+    "project_id": "fridge-food-managing",
+    "storage_bucket": "fridge-food-managing.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:868015333907:android:240a5dcaa3c70bc49395e6",
+        "android_client_info": {
+          "package_name": "com.danmau1410.fridge_food_managing"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "868015333907-m6khn05nma9k6hr1fmjnksjbnq5tqbc2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDe3Rx23pxkn73C8Qeflh8t7uhDQYx_4is"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "868015333907-m6khn05nma9k6hr1fmjnksjbnq5tqbc2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
