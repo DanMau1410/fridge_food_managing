@@ -77,9 +77,9 @@ The details are in [todo.md](todo.md).
 - [x] Task 5: Seed two Auth users, plus `npm run emulators`
 
 **Checkpoint 2:**
-- [ ] `cd firebase && npm test` is green locally and in CI
+- [x] `cd firebase && npm test` is green locally and in CI
 - [x] The Emulator UI shows the seed users
-- [ ] You add `rules` as a required check in both rulesets
+- [x] You add `rules` as a required check in both rulesets
 
 ### Slice 3: `feat/app-foundation-domain`, shared vocabulary
 - [ ] Task 6: `itemKey` and date keys

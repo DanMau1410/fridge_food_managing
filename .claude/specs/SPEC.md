@@ -198,6 +198,7 @@ Conventions:
   - Keep household data only under `households/{hid}/…`, protected by membership rules.
   - Update the relevant spec *before* changing a decision it records.
   - Make schema changes additive only (new optional fields; readers default missing ones).
+  - Follow the security rules in [dev_rules.md §9](../dev_rules.md#9-security): a threat model per slice, rules deny-tests, a secret scan before handoff. Its Ask first and Never lists add to the ones below.
 - **Ask first**
   - Adding a dependency not listed in [Tech Stack](#tech-stack).
   - Data-model or rules changes beyond the specs.
@@ -272,6 +273,8 @@ Starting point (2026-11-12): GitHub remote `origin`, branches `main` + `dev`, no
 
 ### Collaboration protocol
 
+The full list of working rules is in [`.claude/dev_rules.md`](../dev_rules.md).
+
 - **The user owns every git write**: branches, commits, pushes, PRs, merges, tags, branch protection, GitHub releases. Claude only reads git state (`status`, `diff`, `log`), leaves changes uncommitted, and supplies commands and messages to paste.
 - **Every slice ends with a change summary** in chat and in `.claude/specs/REVIEW.md` (overwritten each slice):
   1. **What & why**: 2–3 lines tying the slice to its spec section and acceptance criteria.
@@ -279,6 +282,7 @@ Starting point (2026-11-12): GitHub remote `origin`, branches `main` + `dev`, no
   3. **What to look for**: the 2–5 places that most need human eyes (rules, data writes, tricky logic) as `file:line`, plus anything uncertain.
   4. **How to verify**: exact commands and manual steps with expected results, and anything that could not be verified.
   5. **Proposed commit message**: Conventional Commits, module-id scope.
+  6. **PR handoff**: a quick breakdown of the work, a suggested PR title and description, and a suggested `--head` branch name.
 - **Every stage end** adds a draft PR title and body for `dev` → `main` to `REVIEW.md`: what the stage delivers, acceptance criteria checked off, rules/data notes, and a rollback note. It also gives the exact version-bump and tag commands.
 - The next slice starts only after the user has reviewed and committed the current one, so each commit maps to one reviewed summary.
 

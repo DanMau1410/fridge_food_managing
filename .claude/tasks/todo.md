@@ -94,11 +94,11 @@ Also:
 - `npm ci` and `npm test`, run in `firebase/`
 
 **Acceptance criteria:**
-- [ ] The job `rules` runs next to `flutter` on the PR and is green
+- [x] The job `rules` runs next to `flutter` on the PR and is green
 - [x] No Node or Java version is hard-coded except Java 21
 
 **Verification:**
-- [ ] The PR's checks show `flutter` and `rules` both green
+- [x] The PR's checks show `flutter` and `rules` both green
 - [x] Local equivalent: Task 3's commands
 
 **Dependencies:** Task 3
@@ -128,8 +128,8 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 **Scope:** S
 
 ### Checkpoint 2
-- [ ] Tasks 3–5 verified → REVIEW → you commit, open a PR, `flutter` and `rules` are green, you squash-merge
-- [ ] You add `rules` as a required check in rulesets `Dev PR` and `Main PR`
+- [x] Tasks 3–5 verified → REVIEW → you commit, open a PR, `flutter` and `rules` are green, you squash-merge
+- [x] You add `rules` as a required check in rulesets `Dev PR` and `Main PR`
 
 ---
 
