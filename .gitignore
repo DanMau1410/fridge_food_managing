@@ -119,3 +119,6 @@ app.*.symbols
 
 # Per-slice change summary for review (SPEC.md > Collaboration protocol)
 # /REVIEW.md
+
+# Firebase rules/emulator tooling (firebase/package.json)
+firebase/node_modules/

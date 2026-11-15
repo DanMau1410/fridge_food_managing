@@ -69,16 +69,16 @@ The details are in [todo.md](todo.md).
 **Checkpoint 1:**
 - [x] The gate is green and a debug APK builds
 - [x] A `web-server` run is clean with and without `USE_EMULATOR`
-- [ ] REVIEW written → you commit, open a PR, squash-merge
+- [x] REVIEW written → you commit, open a PR, squash-merge
 
 ### Slice 2: `feat/app-foundation-emulator`, rules harness (needs JDK 21)
-- [ ] Task 3: `firebase/` project with default-deny rules and the AC-AF-8 test
-- [ ] Task 4: CI job `rules`
-- [ ] Task 5: Seed two Auth users, plus `npm run emulators`
+- [x] Task 3: `firebase/` project with default-deny rules and the AC-AF-8 test
+- [x] Task 4: CI job `rules`
+- [x] Task 5: Seed two Auth users, plus `npm run emulators`
 
 **Checkpoint 2:**
 - [ ] `cd firebase && npm test` is green locally and in CI
-- [ ] The Emulator UI shows the seed users
+- [x] The Emulator UI shows the seed users
 - [ ] You add `rules` as a required check in both rulesets
 
 ### Slice 3: `feat/app-foundation-domain`, shared vocabulary

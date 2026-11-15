@@ -56,7 +56,7 @@ cd firebase && npm test                           # security rules tests (runs f
 docker compose run --rm test                      # all Flutter checks in the pinned container
 
 # Run (dev)
-cd firebase && npx firebase emulators:start --only auth,firestore --import=seed
+cd firebase && npm run emulators                  # auth + firestore emulators with the seed (UI: http://localhost:4000)
 flutter run -d chrome --dart-define=USE_EMULATOR=true
 flutter run -d web-server --web-port 8080 --dart-define=USE_EMULATOR=true   # no Chrome: open http://localhost:8080
 flutter run -d <android-device-id> --dart-define=USE_EMULATOR=true
@@ -68,7 +68,7 @@ flutter build apk --release
 docker compose up --build web                     # nginx-served release build -> http://localhost:8081
 
 # Deploy (ask first, every time, until automated)
-cd firebase && npx firebase deploy --only firestore:rules,firestore:indexes
+cd firebase && npx firebase deploy --project prod --only firestore:rules,firestore:indexes   # .firebaserc defaults to demo-fridge
 ```
 
 Emulator ports: Firestore **8085** (8080 is taken by the web dev server), Auth **9099**, Emulator UI **4000**. Emulator project id: `demo-fridge`.
@@ -308,7 +308,7 @@ Delivered inside `app-foundation`.
 - **App ↔ emulator**: `--dart-define=USE_EMULATOR=true` connects Auth (9099) and Firestore (8085) to `localhost` on web and `10.0.2.2` from the Android emulator.
 - **Seed data**: committed in `firebase/seed/` and loaded with `--import`, so every dev and test session starts from the same state. It has two users in one household and a few items per section.
 - **Prod**: one real Firebase project, which the user creates and connects via `flutterfire configure --platforms=android,web`. There's no staging project in v1; adding one needs approval first.
-- **CI job `rules`**: `actions/setup-node` (`node-version-file: .nvmrc`) + `actions/setup-java` (21) → `npm ci` → `npm test` (in `firebase/`).
+- **CI job `rules`**: `actions/setup-node` (`node-version-file: firebase/.nvmrc`) + `actions/setup-java` (21) → `npm ci` → `npm test` (in `firebase/`).
 
 Acceptance:
 - [ ] `cd firebase && npm test` passes locally and in CI.
