@@ -142,12 +142,12 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 - `lib/domain/date_key.dart`: `toDateKey(DateTime)` → `yyyy-MM-dd`, and `fromDateKey(String)` → a local date. A malformed key throws a `FormatException`.
 
 **Acceptance criteria:**
-- [ ] AC-AF-4's table passes, plus `ñ`, `ü` and `ç` cases
-- [ ] AC-AF-7 round-trips, and a malformed key throws
+- [x] AC-AF-4's table passes, plus `ñ`, `ü` and `ç` cases
+- [x] AC-AF-7 round-trips, and a malformed key throws
 
 **Verification:**
-- [ ] `flutter test test/domain/item_key_test.dart test/domain/date_key_test.dart`
-- [ ] The gate is green
+- [x] `flutter test test/domain/item_key_test.dart test/domain/date_key_test.dart`
+- [x] The gate is green
 
 **Dependencies:** None (can run in parallel with Slice 2)
 **Files:** `lib/domain/item_key.dart`, `lib/domain/date_key.dart`, `test/domain/item_key_test.dart`, `test/domain/date_key_test.dart`
@@ -162,12 +162,12 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 - `Quantity` has `amount` and `unit`, `convertTo(Unit) → Quantity?`, `+`/`-` within a dimension, and a comparison returning `int?` (`null` = not comparable).
 
 **Acceptance criteria:**
-- [ ] AC-AF-5's table passes, using `closeTo` for doubles
-- [ ] All 13 categories are asserted against the spec table: healthy flag, location, shelf life
+- [x] AC-AF-5's table passes, using `closeTo` for doubles
+- [x] All 13 categories are asserted against the spec table: healthy flag, location, shelf life
 
 **Verification:**
-- [ ] `flutter test test/domain/`
-- [ ] The gate is green
+- [x] `flutter test test/domain/`
+- [x] The gate is green
 
 **Dependencies:** None
 **Files:** `lib/domain/models/food_category.dart`, `lib/domain/models/storage_location.dart`, `lib/domain/models/unit.dart` (`Unit` + `Quantity`), `test/domain/units_test.dart`, `test/domain/food_category_test.dart`

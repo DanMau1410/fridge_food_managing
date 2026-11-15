@@ -118,7 +118,7 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 
 # Per-slice change summary for review (SPEC.md > Collaboration protocol)
-# /REVIEW.md
+.claude/specs/REVIEW.md
 
 # Firebase rules/emulator tooling (firebase/package.json)
 firebase/node_modules/
