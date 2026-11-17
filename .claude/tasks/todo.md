@@ -174,7 +174,7 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 **Scope:** M
 
 ### Checkpoint 3
-- [ ] Tasks 6–7 verified → REVIEW → you commit, open a PR, CI is green, you squash-merge
+- [x] Tasks 6–7 verified → REVIEW → you commit, open a PR, CI is green, you squash-merge (#8)
 
 ---
 
@@ -241,7 +241,7 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 
 **Verification:**
 - [ ] `docker compose build test && docker compose run --rm test`
-- [ ] The Android emulator run (needs an AVD) launches into the shell
+- [ ] The Android run (phone over USB, or an AVD) launches into the shell
 
 **Dependencies:** Task 9
 **Files:** `pubspec.yaml`, `.claude/specs/SPEC.md`, `.claude/specs/REVIEW.md`, `.claude/tasks/plan.md`, `.claude/tasks/todo.md`

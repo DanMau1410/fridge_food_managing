@@ -26,7 +26,7 @@ The work is four slices. Each slice gets its own `feat/app-foundation-*` branch 
 - **Firebase and Node:** Node 26.13, firebase-tools 15.36 (installed globally), `@firebase/rules-unit-testing` 6.0.0 (needs `firebase` ^13).
 - **Java 17 — but firebase-tools 15 refuses Java below 21 for the emulators** (`MIN_SUPPORTED_JAVA_MAJOR_VERSION = 21`).
 - **Devices:**
-  - Android SDK 36, but no emulator image (AVD) and no phone connected
+  - Android SDK 36 and a phone over USB debugging (Android 16, API 36); no AVD
   - no Chrome, so web runs use `-d web-server` and any browser
 
 ## Architecture decisions
@@ -100,7 +100,7 @@ The details are in [todo.md](todo.md).
 
 **Checkpoint 4: Stage 1 done:**
 - [ ] The gate is green, `docker compose run --rm test` is green, and both CI jobs are green (AC-AF-9)
-- [ ] Manual checks: web in English, Spanish and a fallback language; the Android emulator (needs an AVD); a narrow and a wide window
+- [ ] Manual checks: web in English, Spanish and a fallback language; Android on the phone (or an AVD); a narrow and a wide window
 - [ ] You merge `dev` → `main` and tag `v0.1.0`
 
 ## Risks and mitigations
@@ -109,7 +109,7 @@ The details are in [todo.md](todo.md).
 |---|---|---|
 | Java 17 locally, but the emulators need 21 | High: Slice 2 can't run locally | You install JDK 21 before Slice 2 (see Prerequisites). CI already uses 21 |
 | Google Services plugin 4.3.15 with AGP 9.1 | Med: the Android build may fail | Task 1 builds first, then bumps to 4.6.0 if needed |
-| No Android emulator image or phone | Med: the Android half of AC-AF-1 can't be checked | You create an AVD before Checkpoint 4. `10.0.2.2` only works from the emulator; a physical phone would need the PC's LAN IP (out of scope for v1) |
+| FlutterFire maps `localhost` to `10.0.2.2` on every Android device | Low in Stage 1 (no Firebase calls), Med from Stage 2 | The phone covers AC-AF-1 now. For emulator-backed runs from Stage 2, `adb reverse` ports 9099 and 8085 and pass `automaticHostMapping: false` in `main.dart` |
 | `firebase` run from the repo root picks FlutterFire's `firebase.json` | Low | Always use the npm scripts in `firebase/` (the spec's commands already `cd firebase`) |
 | Generated code fails the format check | Low | `format: true` for gen-l10n. `firebase_options.dart` is already formatted |
 | A dev run without the flag talks to production | Low: production Firestore currently denies everything | Always pass the flag in development. Tests never point at production (spec) |
