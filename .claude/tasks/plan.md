@@ -92,8 +92,8 @@ The details are in [todo.md](todo.md).
 - [x] The gate is green
 
 ### Slice 4: `feat/app-foundation-shell`, English/Spanish shell and stage close
-- [ ] Task 8: Localization setup and enum labels
-- [ ] Task 9: App shell and theme, replacing the template
+- [x] Task 8: Localization setup and enum labels
+- [x] Task 9: App shell and theme, replacing the template
 - [ ] Task 10: Stage close: version `0.1.0+2`, spec ticks, stage PR and tag commands
 
 **Security:** none: UI only. No Firestore calls, no new inputs. The template removal deletes code.
