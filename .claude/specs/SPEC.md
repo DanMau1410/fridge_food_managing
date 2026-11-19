@@ -32,7 +32,7 @@ A cross-platform app (Android phone + web for computers in v1) where a **househo
 | Backend | Firebase **Auth** (email/password + Google) and **Cloud Firestore** (real-time listeners, offline persistence). Spark (free) plan, no Cloud Functions |
 | Recipe ideas | TheMealDB public API v1 (`https://www.themealdb.com/api/json/v1/1/`) |
 | i18n | `flutter_localizations` + `intl`, ARB files, `flutter gen-l10n` (EN + ES) |
-| Runtime packages | `firebase_core`, `firebase_auth`, `cloud_firestore`, `provider`, `http`, `intl`, `flutter_localizations` (sdk) |
+| Runtime packages | `firebase_core`, `firebase_auth`, `cloud_firestore`, `provider`, `http`, `intl`, `flutter_localizations` (sdk), `flutter_web_plugins` (sdk; Flutter's generated web plugin registrant imports it, and `firebase_core_web` ≥ 3.12 no longer brings it in) |
 | Dev packages | `flutter_test`, `flutter_lints`, `fake_cloud_firestore`, `firebase_auth_mocks` |
 | Rules tooling | `firebase/` Node project: `firebase-tools`, `@firebase/rules-unit-testing`, Node's built-in `node --test` |
 
@@ -56,7 +56,7 @@ cd firebase && npm test                           # security rules tests (runs f
 docker compose run --rm test                      # all Flutter checks in the pinned container
 
 # Run (dev)
-cd firebase && npx firebase emulators:start --only auth,firestore --import=seed
+cd firebase && npm run emulators                  # auth + firestore emulators with the seed (UI: http://localhost:4000)
 flutter run -d chrome --dart-define=USE_EMULATOR=true
 flutter run -d web-server --web-port 8080 --dart-define=USE_EMULATOR=true   # no Chrome: open http://localhost:8080
 flutter run -d <android-device-id> --dart-define=USE_EMULATOR=true
@@ -68,7 +68,7 @@ flutter build apk --release
 docker compose up --build web                     # nginx-served release build -> http://localhost:8081
 
 # Deploy (ask first, every time, until automated)
-cd firebase && npx firebase deploy --only firestore:rules,firestore:indexes
+cd firebase && npx firebase deploy --project prod --only firestore:rules,firestore:indexes   # .firebaserc defaults to demo-fridge
 ```
 
 Emulator ports: Firestore **8085** (8080 is taken by the web dev server), Auth **9099**, Emulator UI **4000**. Emulator project id: `demo-fridge`.
@@ -106,9 +106,9 @@ firebase/
   package.json, package-lock.json
 .github/workflows/ci.yml         → CI
 .claude/
-  SPEC.md, SPEC-<module-id>.md   → specs
-  REVIEW.md                      → per-slice change summary (overwritten each slice)
-  tasks/plan.md, tasks/todo.md   → plan and tasks for the current stage (committed)
+  specs/SPEC.md, specs/SPEC-<module-id>.md → specs
+  specs/REVIEW.md                          → per-slice change summary (overwritten each slice)
+  tasks/plan.md, tasks/todo.md             → plan and tasks for the current stage (committed)
 ```
 
 Feature folders under `lib/ui/` are `auth`, `household`, `inventory`, `grocery`, `suggestions`, `recipes`, `discover`.
@@ -198,6 +198,7 @@ Conventions:
   - Keep household data only under `households/{hid}/…`, protected by membership rules.
   - Update the relevant spec *before* changing a decision it records.
   - Make schema changes additive only (new optional fields; readers default missing ones).
+  - Follow the security rules in [dev_rules.md §9](../dev_rules.md#9-security): a threat model per slice, rules deny-tests, a secret scan before handoff. Its Ask first and Never lists add to the ones below.
 - **Ask first**
   - Adding a dependency not listed in [Tech Stack](#tech-stack).
   - Data-model or rules changes beyond the specs.
@@ -272,13 +273,16 @@ Starting point (2026-11-12): GitHub remote `origin`, branches `main` + `dev`, no
 
 ### Collaboration protocol
 
+The full list of working rules is in [`.claude/dev_rules.md`](../dev_rules.md).
+
 - **The user owns every git write**: branches, commits, pushes, PRs, merges, tags, branch protection, GitHub releases. Claude only reads git state (`status`, `diff`, `log`), leaves changes uncommitted, and supplies commands and messages to paste.
-- **Every slice ends with a change summary** in chat and in `.claude/REVIEW.md` (overwritten each slice):
+- **Every slice ends with a change summary** in chat and in `.claude/specs/REVIEW.md` (overwritten each slice):
   1. **What & why**: 2–3 lines tying the slice to its spec section and acceptance criteria.
   2. **Files changed**: clickable paths grouped by layer (models / repositories / view models / widgets / rules / tests / config), one line each on what changed.
   3. **What to look for**: the 2–5 places that most need human eyes (rules, data writes, tricky logic) as `file:line`, plus anything uncertain.
   4. **How to verify**: exact commands and manual steps with expected results, and anything that could not be verified.
   5. **Proposed commit message**: Conventional Commits, module-id scope.
+  6. **PR handoff**: a quick breakdown of the work, a suggested PR title and description, and a suggested `--head` branch name.
 - **Every stage end** adds a draft PR title and body for `dev` → `main` to `REVIEW.md`: what the stage delivers, acceptance criteria checked off, rules/data notes, and a rollback note. It also gives the exact version-bump and tag commands.
 - The next slice starts only after the user has reviewed and committed the current one, so each commit maps to one reviewed summary.
 
@@ -295,10 +299,10 @@ One PR to `dev`, before any feature code.
 - **Branch protection** (the user sets this in GitHub): on `main` and `dev`, require a PR, require the CI checks to pass, and block force-push and deletion.
 
 Acceptance:
-- [ ] A trivial PR to `dev` runs CI, and CI is green.
-- [ ] A deliberately mis-formatted Dart file makes CI fail at the format step.
-- [ ] Changing `environment.flutter` to another version makes `flutter pub get` fail locally.
-- [ ] `docker compose run --rm test` runs the same checks as CI and passes.
+- [x] A trivial PR to `dev` runs CI, and CI is green. *(PR #2 into `dev`, green.)*
+- [x] A deliberately mis-formatted Dart file makes CI fail at the format step. *(PR #3: failed at Format; Analyze/Test/Build skipped; closed unmerged.)*
+- [x] Changing `environment.flutter` to another version makes `flutter pub get` fail locally.
+- [x] `docker compose run --rm test` runs the same checks as CI and passes.
 
 ### Stage 1: Environments
 
@@ -308,12 +312,12 @@ Delivered inside `app-foundation`.
 - **App ↔ emulator**: `--dart-define=USE_EMULATOR=true` connects Auth (9099) and Firestore (8085) to `localhost` on web and `10.0.2.2` from the Android emulator.
 - **Seed data**: committed in `firebase/seed/` and loaded with `--import`, so every dev and test session starts from the same state. It has two users in one household and a few items per section.
 - **Prod**: one real Firebase project, which the user creates and connects via `flutterfire configure --platforms=android,web`. There's no staging project in v1; adding one needs approval first.
-- **CI job `rules`**: `actions/setup-node` (`node-version-file: .nvmrc`) + `actions/setup-java` (21) → `npm ci` → `npm test` (in `firebase/`).
+- **CI job `rules`**: `actions/setup-node` (`node-version-file: firebase/.nvmrc`) + `actions/setup-java` (21) → `npm ci` → `npm test` (in `firebase/`).
 
 Acceptance:
-- [ ] `cd firebase && npm test` passes locally and in CI.
-- [ ] The app run with `USE_EMULATOR=true` shows its reads and writes in the Emulator UI (http://localhost:4000), and the seed data is visible.
-- [ ] Without `USE_EMULATOR`, the app uses the prod options from `firebase_options.dart`.
+- [x] `cd firebase && npm test` passes locally and in CI. *(Slice 2; rerun at Stage 1 close, 2026-11-17)*
+- [ ] The app run with `USE_EMULATOR=true` shows its reads and writes in the Emulator UI (http://localhost:4000), and the seed data is visible. *(Seed data visible since Slice 2. Stage 1 makes no reads or writes, so that half waits for Stage 2's first sign-up, AC-ID-1; see KI-2 for phones.)*
+- [x] Without `USE_EMULATOR`, the app uses the prod options from `firebase_options.dart`. *(Clean start on a phone, 2026-11-17)*
 
 ### Stages 2–8: Module loop
 
@@ -347,10 +351,43 @@ Skipped in v1: Dependabot, Crashlytics/monitoring, staging Firebase project, Pla
 - [ ] Finish trip, restock suggestions, recipe availability and "add missing" each meet their module's acceptance criteria.
 - [ ] `flutter analyze` is clean, all tests pass, CI is green, and the Docker web release build serves the app.
 
+## Known Issues
+
+Deferred problems, each with what triggers its fix. Delete an entry when its fix merges.
+
+### KI-1: The Android project still opts out of built-in Kotlin
+
+*Found 2026-11-17. The plugin half was fixed at Stage 1's close: firebase_core 5.2.0, firebase_auth 7.1.0 and cloud_firestore 7.2.0 no longer apply the Kotlin Gradle Plugin (KGP), and the "plugins that apply Kotlin Gradle Plugin" build warning is gone.*
+
+- **What's left:** `android/gradle.properties` keeps Flutter's template opt-outs (`android.builtInKotlin=false`, `android.newDsl=false`), so Flutter still applies KGP itself. A future Flutter release drops that ([Flutter's migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)).
+- **Risk:** low while Flutter stays pinned at 3.47.6. A debug APK already builds with `android.builtInKotlin=true` (checked 2026-11-17).
+- **Fix, before bumping Flutter:**
+  1. Set `android.builtInKotlin=true`.
+  2. Check whether `android/settings.gradle.kts` still needs its `org.jetbrains.kotlin.android` line.
+  3. Build a debug APK and run it on the phone.
+  4. Keep `android.newDsl=false` until Flutter's guide says otherwise.
+- **Ignorable noise in Android build logs:**
+  - "SDK XML version 4": the command-line tools are newer than AGP's SDK parser.
+  - cloud_firestore's "unchecked or unsafe operations": a note about the plugin's own Java code.
+  - The `--enable-dart-profiling` Intent notice: comes from the Flutter tool's debug launch.
+  - `gralloc` / `AHardwareBuffer` errors: the phone's GPU driver probing a pixel format under Impeller. The app renders fine.
+
+### KI-2: Emulator host on a physical Android phone
+
+*Found 2026-11-17. Deferred to Stage 2, the first stage whose app talks to the emulators.*
+
+- **Problem:** FlutterFire rewrites `localhost` and `127.0.0.1` to `10.0.2.2` on every Android device (`firebase_core`'s `port_mapping.dart`), not just the emulator. From a phone, `10.0.2.2` doesn't reach the PC, so `USE_EMULATOR=true` runs can't connect. [SPEC-app-foundation](SPEC-app-foundation.md) ("Passing `localhost` covers both") and [Stage 1](#stage-1-environments) both assume an emulator.
+- **Fix:**
+  - Forward the ports over USB with `adb reverse tcp:9099 tcp:9099` and `adb reverse tcp:8085 tcp:8085`. This also works on an AVD.
+  - Pass `automaticHostMapping: false` to `useAuthEmulator` and `useFirestoreEmulator` in `main.dart`.
+  - Update both spec lines in the same change.
+  - Rejected: using the PC's LAN IP. The emulators would have to bind to `0.0.0.0`, which exposes them to the network.
+- **Impact now:** none. Stage 1 makes no Firebase calls.
+
 ## Open Questions
 
 1. **Seed recipes**: which ~10 starter recipes (EN + ES)? Claude will propose a list during `recipes` planning.
-2. **Shelf-life defaults** per category (proposed in [SPEC-app-foundation.md](SPEC-app-foundation.md#food-categories)): confirm or adjust.
+2. ~~**Shelf-life defaults**~~: answered 2026-11-14. The table in [SPEC-app-foundation.md](SPEC-app-foundation.md#food-categories) is confirmed, with fruit defaulting to the cabinet.
 3. **Suggestion thresholds**: ≥3 purchases in 60 days, "expiring" = within 2 days, "expiring soon" badge = within 3 days. Tune after real use?
 4. **TheMealDB**: the free test key `1` is meant for development/education. Confirm the terms are acceptable for a personal app, and confirm web CORS during `recipe-discovery`.
 5. **Firebase project**: the user creates it (needs their Google account) and runs `flutterfire configure` before `app-foundation` can finish.

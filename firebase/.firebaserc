@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "demo-fridge",
+    "prod": "fridge-food-managing"
+  }
+}

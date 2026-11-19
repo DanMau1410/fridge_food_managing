@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web-emulator",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8080", "--dart-define=USE_EMULATOR=true"],
+      "port": 8080
+    },
+    {
+      "name": "web-prod",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "8082"],
+      "port": 8082
+    }
+  ]
+}

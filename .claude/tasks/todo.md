@@ -1,86 +1,266 @@
-# Stage 0 Tasks: DevOps Baseline
+# Stage 1 Tasks: `app-foundation`
 
-> Plan: [plan.md](plan.md) · Spec: [SPEC.md › Stage 0](../SPEC.md#stage-0-baseline)
-> Before Task 1 (user): `git switch -c ci/stage-0-baseline dev`
+> Plan: [plan.md](plan.md) · Spec: [SPEC-app-foundation.md](../specs/SPEC-app-foundation.md) · Gate = `dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test && flutter build web --release`
 
-## Task 1: Pin Flutter, enforce the lockfile, set the stage version
+---
 
-**Description:** Add `environment.flutter: 3.47.6` (exact) to `pubspec.yaml` so any other Flutter version fails `pub get`, and refresh `pubspec.lock` to match. Switch both Dockerfile `pub get` lines to `--enforce-lockfile`. Set `version: 0.0.0+1`.
+## Slice 1: `feat/app-foundation-firebase`
+
+> Before Task 1 (you): `git switch -c feat/app-foundation-firebase dev`. The uncommitted FlutterFire files and spec edits come along.
+
+### Task 1: Android debug build with FlutterFire's Gradle setup
+
+**Description:** Build a debug APK with the uncommitted FlutterFire changes: the Google Services plugin 4.3.15 on AGP 9.1, plus `google-services.json`. If the build fails because of the plugin, bump it to 4.6.0 in `android/settings.gradle.kts`. Keep FlutterFire's generated files as they are.
 
 **Acceptance criteria:**
-- [x] `pubspec.yaml` has `flutter: 3.47.6` under `environment` and `version: 0.0.0+1`
-- [x] `flutter pub get --enforce-lockfile` passes on the host with the refreshed lock
-- [x] Temporarily pinning `3.48.0` makes `flutter pub get` fail with "requires Flutter SDK version 3.48.0" (then revert)
+- [x] `flutter build apk --debug` succeeds
+- [x] `flutter build web --release` still succeeds
+- [x] The plugin version that works is recorded in REVIEW (4.3.15 kept, or 4.6.0 with the error that forced it)
 
 **Verification:**
-- [x] `flutter pub get --enforce-lockfile && flutter test`
-- [x] `docker compose build test` succeeds (the Dockerfile `pub get` respects the lock and the pin)
+- [x] `flutter build apk --debug && flutter build web --release`
+- [x] The gate is green
 
 **Dependencies:** None
-**Files:** `pubspec.yaml`, `pubspec.lock`, `Dockerfile`
-**Scope:** XS
+**Files:** `android/settings.gradle.kts` (only if bumped), plus the FlutterFire files already present: `android/app/build.gradle.kts`, `android/app/google-services.json`, `lib/firebase_options.dart`, `firebase.json`
+**Scope:** S
 
-## Task 2: CI workflow, job `flutter`
+### Task 2: Initialize Firebase, emulator switch, web persistence
 
-**Description:** Add `.github/workflows/ci.yml`. It runs on every `pull_request`, and on `push` to `dev` and `main`, with `permissions: contents: read`. Job `flutter` on `ubuntu-latest` runs `actions/checkout@v7` → `subosito/flutter-action@v2` (`flutter-version-file: pubspec.yaml`, `cache: true`), then one named step each for `flutter pub get --enforce-lockfile`, `dart format --output=none --set-exit-if-changed .`, `flutter analyze`, `flutter test` and `flutter build web --release`.
+**Description:** Add `firebase_auth` and `cloud_firestore` (both approved in the spec's Tech Stack). In `main.dart`:
+1. `WidgetsFlutterBinding.ensureInitialized()`
+2. `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`
+3. On web, turn on Firestore persistence.
+4. If `USE_EMULATOR`, point Auth at `host:9099` and Firestore at `host:8085`, with `host` = `localhost` on web and `10.0.2.2` on Android, and `debugPrint` the host.
+5. Run the existing template app (the shell comes in Slice 4).
+
+Also update SPEC-app-foundation's scope: `dependencies.dart` moves to `identity`.
 
 **Acceptance criteria:**
-- [x] The workflow has exactly the triggers, permissions, job name and step order above
-- [x] The Flutter version comes only from `pubspec.yaml` (no hard-coded version in the workflow)
+- [x] With `--dart-define=USE_EMULATOR=true`, startup logs the emulator host and the app renders with no console errors
+- [x] Without the flag, there's no emulator log, the app uses the production options, and it renders with no errors
+- [x] `flutter test` still passes (widget tests don't initialize Firebase)
 
 **Verification:**
-- [x] The same five commands, run on the host in order, all exit 0
-- [ ] The real proof is Tasks 5–6 on GitHub
+- [x] The gate is green
+- [x] `flutter run -d web-server --web-port 8080 --dart-define=USE_EMULATOR=true`, then open http://localhost:8080: the app renders, the browser console is clean, and the terminal shows the emulator log. Repeat without the flag.
 
-**Dependencies:** Task 1 (`flutter-version-file` needs the pin)
+**Dependencies:** Task 1
+**Files:** `pubspec.yaml`, `pubspec.lock`, `lib/main.dart`, `.claude/specs/SPEC-app-foundation.md`
+**Scope:** S
+
+### Checkpoint 1
+- [x] Tasks 1–2 verified, and `git status` shows only the intended files
+- [x] REVIEW written → you commit, open a PR into `dev`, CI is green, you squash-merge
+
+---
+
+## Slice 2: `feat/app-foundation-emulator` (needs JDK 21)
+
+### Task 3: `firebase/` project with default-deny rules and the AC-AF-8 test
+
+**Description:** Create the `firebase/` folder:
+- `firebase.json`: emulators Auth on 9099, Firestore on 8085, UI on 4000; points to the rules and indexes files
+- `.firebaserc`: default `demo-fridge`, alias `prod` = `fridge-food-managing`
+- `firestore.rules`: `rules_version = '2'`, helpers `signedIn()` and an `isMember(hid)` stub that returns `false`, and no `allow` anywhere, so everything is denied
+- an empty `firestore.indexes.json`
+- `package.json` + `package-lock.json`: devDependencies `firebase-tools`, `@firebase/rules-unit-testing`, `firebase`; `test` = `firebase emulators:exec --only firestore "node --test test/"`
+- `.nvmrc` = `26`
+- `test/foundation.test.js`: AC-AF-8
+
+Also:
+- Add `firebase/node_modules/` to `.gitignore` and `.dockerignore`.
+- Change the spec's deploy command to `--project prod`.
+
+**Acceptance criteria:**
+- [x] `cd firebase && npm ci && npm test` passes, with four denied cases: unauthenticated read, unauthenticated write, authenticated read and authenticated write to `/anything/x`
+- [x] Temporarily adding `allow read: if true;` makes the test fail (then revert)
+- [x] A bare `npx firebase use` inside `firebase/` reports `demo-fridge`
+
+**Verification:**
+- [x] `cd firebase && npm ci && npm test`
+- [x] The negative check above
+
+**Dependencies:** JDK 21 (you)
+**Files:** `firebase/firebase.json`, `firebase/.firebaserc`, `firebase/firestore.rules`, `firebase/firestore.indexes.json`, `firebase/package.json`, `firebase/package-lock.json`, `firebase/.nvmrc`, `firebase/test/foundation.test.js`, `.gitignore`, `.dockerignore`, `.claude/specs/SPEC.md`
+**Scope:** M (mostly one-line config files)
+
+### Task 4: CI job `rules`
+
+**Description:** Add job `rules` to `ci.yml`, with the same triggers and token permissions:
+- `actions/checkout@v7`
+- `actions/setup-node` (`node-version-file: firebase/.nvmrc`, npm cache keyed on `firebase/package-lock.json`)
+- `actions/setup-java` (Temurin 21)
+- `npm ci` and `npm test`, run in `firebase/`
+
+**Acceptance criteria:**
+- [x] The job `rules` runs next to `flutter` on the PR and is green
+- [x] No Node or Java version is hard-coded except Java 21
+
+**Verification:**
+- [x] The PR's checks show `flutter` and `rules` both green
+- [x] Local equivalent: Task 3's commands
+
+**Dependencies:** Task 3
 **Files:** `.github/workflows/ci.yml`
 **Scope:** XS
 
-## Task 3: Docker `test` service = CI checks, with the bind-mount fix
+### Task 5: Seed two Auth users, plus `npm run emulators`
 
-**Description:** Change the Compose `test` command to the same five CI commands. On `dev` and `test`, add anonymous volumes `/app/.dart_tool` and `/app/build`, so the container never writes into the host's `.dart_tool`/`build` and leaves no root-owned files.
+**Description:**
+1. Start the emulators.
+2. Create two test accounts through the Auth emulator's REST API (emulator only, never production).
+3. Export them to `firebase/seed/`.
+4. Add the script `emulators` = `firebase emulators:start --only auth,firestore --import=seed`. It imports only, so dev data never leaks into the seed.
+
+The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: every `--export-on-exit=seed` replaces the whole folder.)
 
 **Acceptance criteria:**
-- [x] `docker compose run --rm test` runs pub get (enforced) → format → analyze → test → build web, and exits 0
-- [x] Right after a Docker run, host `flutter test` passes with no `pub get` first, and `find . -user root -not -path './.git/*'` prints nothing
-- [x] A deliberately mis-formatted line in `lib/main.dart` fails both the host gate and `docker compose run --rm test` at the format step (then revert)
+- [x] `cd firebase && npm run emulators`, then open http://localhost:4000 → Authentication: both users are listed
+- [x] Restarting the emulators shows the same two users and nothing else
+
+**Verification:**
+- [x] The manual check above
+- [x] `npm test` is still green
+
+**Dependencies:** Task 3
+**Files:** `firebase/seed/**` (the export), `firebase/README.md`, `firebase/package.json`, `analysis_options.yaml` (excludes `firebase/node_modules`, where firebase-tools ships a Dart template)
+**Scope:** S
+
+### Checkpoint 2
+- [x] Tasks 3–5 verified → REVIEW → you commit, open a PR, `flutter` and `rules` are green, you squash-merge
+- [x] You add `rules` as a required check in rulesets `Dev PR` and `Main PR`
+
+---
+
+## Slice 3: `feat/app-foundation-domain`
+
+### Task 6: `itemKey` and date keys
+
+**Description:** Write two pure functions, each with a table test:
+- `lib/domain/item_key.dart`: trim, lowercase, collapse inner whitespace, strip Latin accents with a small map. A blank input returns `''`, which callers must reject.
+- `lib/domain/date_key.dart`: `toDateKey(DateTime)` → `yyyy-MM-dd`, and `fromDateKey(String)` → a local date. A malformed key throws a `FormatException`.
+
+**Acceptance criteria:**
+- [x] AC-AF-4's table passes, plus `ñ`, `ü` and `ç` cases
+- [x] AC-AF-7 round-trips, and a malformed key throws
+
+**Verification:**
+- [x] `flutter test test/domain/item_key_test.dart test/domain/date_key_test.dart`
+- [x] The gate is green
+
+**Dependencies:** None (can run in parallel with Slice 2)
+**Files:** `lib/domain/item_key.dart`, `lib/domain/date_key.dart`, `test/domain/item_key_test.dart`, `test/domain/date_key_test.dart`
+**Scope:** S
+
+### Task 7: `FoodCategory`, `StorageLocation`, `Unit`, `Quantity`
+
+**Description:**
+- `FoodCategory` is an enum carrying `healthy`, `defaultLocation` and `defaultShelfLifeDays` (`int?`), straight from the spec table, with fruit → cabinet.
+- `StorageLocation` is an enum.
+- Each `Unit` has a dimension (count, mass or volume) and a base factor.
+- `Quantity` has `amount` and `unit`, `convertTo(Unit) → Quantity?`, `+`/`-` within a dimension, and a comparison returning `int?` (`null` = not comparable).
+
+**Acceptance criteria:**
+- [x] AC-AF-5's table passes, using `closeTo` for doubles
+- [x] All 13 categories are asserted against the spec table: healthy flag, location, shelf life
+
+**Verification:**
+- [x] `flutter test test/domain/`
+- [x] The gate is green
+
+**Dependencies:** None
+**Files:** `lib/domain/models/food_category.dart`, `lib/domain/models/storage_location.dart`, `lib/domain/models/unit.dart` (`Unit` + `Quantity`), `test/domain/units_test.dart`, `test/domain/food_category_test.dart`
+**Scope:** M
+
+### Checkpoint 3
+- [x] Tasks 6–7 verified → REVIEW → you commit, open a PR, CI is green, you squash-merge (#8)
+
+---
+
+## Slice 4: `feat/app-foundation-shell`
+
+### Task 8: Localization setup and enum labels
+
+**Description:**
+- Add `flutter_localizations` (sdk) and `intl`, plus `generate: true`.
+- Add `l10n.yaml` (`arb-dir: lib/l10n`, `template-arb-file: app_en.arb`, `format: true`).
+- Write `app_en.arb` and `app_es.arb` with the shell strings and every enum label (13 categories, 3 locations, 8 units).
+- Add `lib/ui/core/labels.dart` to map each enum value to its localized label.
+- Commit the generated files.
+
+**Acceptance criteria:**
+- [x] Every `FoodCategory`, `StorageLocation` and `Unit` value has a non-empty label in both English and Spanish (AC-AF-6, labels part)
+- [x] Spot checks: `fruit` → "Fruit"/"Fruta", `cabinet` → "Cabinet"/"Despensa"
+- [x] The format check passes on the generated files
+
+**Verification:**
+- [x] `flutter test test/ui/core/labels_test.dart`
+- [x] The gate is green
+
+**Dependencies:** Task 7
+**Files:** `pubspec.yaml`, `pubspec.lock`, `l10n.yaml`, `lib/l10n/app_en.arb`, `lib/l10n/app_es.arb`, `lib/l10n/app_localizations*.dart` (generated), `lib/ui/core/labels.dart`, `test/ui/core/labels_test.dart`
+**Scope:** M
+
+### Task 9: App shell and theme, replacing the template
+
+**Description:**
+- `lib/ui/core/theme.dart`: Material 3, teal seed, light and dark following the system.
+- `lib/ui/core/app_shell.dart`:
+  - Food, Groceries and Recipes destinations in an `IndexedStack`, so each tab keeps its state
+  - a `NavigationBar` below 840 px wide and a `NavigationRail` at 840 px or wider
+  - an app-bar action that opens a placeholder Household & account screen
+  - a localized empty placeholder on each destination
+- `main.dart`: `MaterialApp` with the theme, localization delegates, English first in `supportedLocales` (so unsupported languages fall back to English), and `home: AppShell`.
+- Delete `FridgePage` and `test/widget_test.dart`.
+
+**Acceptance criteria:**
+- [x] AC-AF-1 in tests: the labels appear in English, in Spanish, and in English under `fr`
+- [x] AC-AF-2 in tests: 600 px → `NavigationBar`, 1000 px → `NavigationRail`, and switching tabs keeps the others mounted
+- [x] The account action opens the placeholder and back returns to the shell
+
+**Verification:**
+- [x] `flutter test test/ui/core/app_shell_test.dart`
+- [x] The gate is green
+- [ ] Manual: a `web-server` run in a narrow and a wide browser window, and with the browser language set to Spanish
+
+**Dependencies:** Task 8, Task 2
+**Files:** `lib/ui/core/theme.dart`, `lib/ui/core/app_shell.dart`, `lib/main.dart`, `test/ui/core/app_shell_test.dart`, `test/widget_test.dart` (deleted)
+**Scope:** M
+
+### Task 10: Stage close
+
+**Description:**
+- Set `version: 0.1.0+2`.
+- Tick Stage 1's acceptance boxes in SPEC.md, citing the evidence.
+- REVIEW gets the Slice 4 summary, plus the draft `dev` → `main` PR (with a rollback note) and the `v0.1.0` annotated-tag commands.
+
+**Acceptance criteria:**
+- [x] `docker compose run --rm test` is green (AC-AF-9)
+- [x] Every git and GitHub step is a command for you to run. I run none of them
 
 **Verification:**
 - [x] `docker compose build test && docker compose run --rm test`
-- [x] The host checks above
+- [ ] The Android run (phone over USB, or an AVD) launches into the shell
 
-**Dependencies:** Task 1
-**Files:** `docker-compose.yml`
-**Scope:** XS
+**Dependencies:** Task 9
+**Files:** `pubspec.yaml`, `.claude/specs/SPEC.md`, `.claude/specs/REVIEW.md`, `.claude/tasks/plan.md`, `.claude/tasks/todo.md`
+**Scope:** S
 
-## Checkpoint A: Local gate
+### Checkpoint 4: Stage 1 done
+- [ ] Slice 4 PR squash-merged, both CI jobs green
+- [ ] You merge `dev` → `main` with a merge commit and tag `v0.1.0`
+- [ ] Next: plan `identity` (Stage 2), only when you ask
 
-- [x] Tasks 1–3 verifications all green; negative checks reverted, `git status` shows only the intended files
-- [x] Task 4 written → user reviews and commits
+---
 
-## Task 4: REVIEW.md for the slice and the stage
+## Deferred findings (Stage 1 close, 2026-11-17)
 
-**Description:** Overwrite `.claude/REVIEW.md` with the five-part slice summary. Add a draft PR title and body for `ci/stage-0-baseline` → `dev`, the throwaway mis-format PR commands (Task 6), branch-protection steps (Task 7), a draft `dev` → `main` PR with a rollback note, and the `v0.0.0` annotated-tag commands (Task 8).
-
-**Acceptance criteria:**
-- [x] Every git and GitHub step is a command or click path for the user. Claude runs none of them
-- [x] There's a proposed commit message: `ci: add Stage 0 baseline (pinned Flutter, locked deps, CI, Docker parity)`
-
-**Verification:**
-- [x] The user reads REVIEW.md and can complete Phase 2 from it alone
-
-**Dependencies:** Tasks 1–3
-**Files:** `.claude/REVIEW.md`
-**Scope:** XS
-
-## Phase 2: GitHub (the user)
-
-- [ ] **Task 5**: Push `ci/stage-0-baseline` and open a PR → `dev`. The `flutter` check is green.
-- [ ] **Task 6**: A throwaway branch off `ci/stage-0-baseline` with one mis-formatted line, opened as a draft PR. CI fails at the **format** step. Close it unmerged and delete the branch.
-- [ ] **Task 7**: Protect `dev` and `main`: require a PR, require status check `flutter`, block force-push and deletion. Then squash-merge the Task 5 PR.
-- [ ] **Task 8**: PR `dev` → `main`, merged with a **merge commit**, then `git tag -a v0.0.0` and push the tag.
-
-## Checkpoint B: Stage 0 done
-
-- [ ] The user confirms Tasks 5–8, and Claude ticks the four Stage 0 acceptance boxes in `.claude/SPEC.md`
-- [ ] Next: plan `app-foundation` (Stage 1), only when the user asks
+- **`npm audit` in `firebase/`: 24 findings (14 moderate, 10 high).**
+  - All of them are in the dev-only emulator test tooling (`firebase-tools` 15.36, `firebase` 13, `@firebase/rules-unit-testing` 6). It runs locally and in CI against `demo-fridge` and never ships.
+  - npm's "fixes" are major downgrades (`firebase-tools` 13, `firebase` 9, `rules-unit-testing` 2).
+  - Non-breaking transitive fixes exist (`picomatch`, `fdir`, `tinyglobby`, `node-gyp`, `re2`, `gcp-metadata`, `google-gax`), but `npm audit fix` would rebuild `re2` with install scripts.
+  - **Review:** at Stage 2 close, or when a `firebase-tools` release clears them.
+- **`cupertino_icons` 2.0.0 (major):** a template dependency the app doesn't use. **Review:** at Stage 2 close; dropping it is the simplest fix.
+- **`vector_math`, `vm_service`, `test_api`, `material_color_utilities`:** pinned by the Flutter SDK. They move with a Flutter bump.
+- **`IndexedStack` builds all three tabs at launch:** fine with empty states. **Review:** when planning `inventory`, before tabs open Firestore listeners (build a tab on its first visit instead).

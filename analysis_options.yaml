@@ -18,6 +18,7 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+    - firebase/node_modules/**  # firebase-tools ships a Dart template
 
 linter:
   # The lint rules applied to this project can be customized in the

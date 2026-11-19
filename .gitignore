@@ -118,4 +118,24 @@ app.*.symbols
 !/dev/ci/**/Gemfile.lock
 
 # Per-slice change summary for review (SPEC.md > Collaboration protocol)
-# /REVIEW.md
+.claude/specs/REVIEW.md
+
+# Firebase rules/emulator tooling (firebase/package.json)
+firebase/node_modules/
+
+# Secrets and key material (dev_rules.md §9)
+*.p12
+*.mobileprovision
+*.pem
+*.key
+*service-account*.json
+*serviceAccount*.json
+*-firebase-adminsdk-*.json
+.env
+.env.*
+!.env.example
+.secret.local
+.runtimeconfig.json
+
+# Firebase CLI cache
+.firebase/
