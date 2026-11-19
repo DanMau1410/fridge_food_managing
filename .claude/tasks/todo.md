@@ -190,13 +190,13 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 - Commit the generated files.
 
 **Acceptance criteria:**
-- [ ] Every `FoodCategory`, `StorageLocation` and `Unit` value has a non-empty label in both English and Spanish (AC-AF-6, labels part)
-- [ ] Spot checks: `fruit` → "Fruit"/"Fruta", `cabinet` → "Cabinet"/"Despensa"
-- [ ] The format check passes on the generated files
+- [x] Every `FoodCategory`, `StorageLocation` and `Unit` value has a non-empty label in both English and Spanish (AC-AF-6, labels part)
+- [x] Spot checks: `fruit` → "Fruit"/"Fruta", `cabinet` → "Cabinet"/"Despensa"
+- [x] The format check passes on the generated files
 
 **Verification:**
-- [ ] `flutter test test/ui/core/labels_test.dart`
-- [ ] The gate is green
+- [x] `flutter test test/ui/core/labels_test.dart`
+- [x] The gate is green
 
 **Dependencies:** Task 7
 **Files:** `pubspec.yaml`, `pubspec.lock`, `l10n.yaml`, `lib/l10n/app_en.arb`, `lib/l10n/app_es.arb`, `lib/l10n/app_localizations*.dart` (generated), `lib/ui/core/labels.dart`, `test/ui/core/labels_test.dart`
@@ -215,13 +215,13 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 - Delete `FridgePage` and `test/widget_test.dart`.
 
 **Acceptance criteria:**
-- [ ] AC-AF-1 in tests: the labels appear in English, in Spanish, and in English under `fr`
-- [ ] AC-AF-2 in tests: 600 px → `NavigationBar`, 1000 px → `NavigationRail`, and switching tabs keeps the others mounted
-- [ ] The account action opens the placeholder and back returns to the shell
+- [x] AC-AF-1 in tests: the labels appear in English, in Spanish, and in English under `fr`
+- [x] AC-AF-2 in tests: 600 px → `NavigationBar`, 1000 px → `NavigationRail`, and switching tabs keeps the others mounted
+- [x] The account action opens the placeholder and back returns to the shell
 
 **Verification:**
-- [ ] `flutter test test/ui/core/app_shell_test.dart`
-- [ ] The gate is green
+- [x] `flutter test test/ui/core/app_shell_test.dart`
+- [x] The gate is green
 - [ ] Manual: a `web-server` run in a narrow and a wide browser window, and with the browser language set to Spanish
 
 **Dependencies:** Task 8, Task 2
@@ -236,11 +236,11 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 - REVIEW gets the Slice 4 summary, plus the draft `dev` → `main` PR (with a rollback note) and the `v0.1.0` annotated-tag commands.
 
 **Acceptance criteria:**
-- [ ] `docker compose run --rm test` is green (AC-AF-9)
-- [ ] Every git and GitHub step is a command for you to run. I run none of them
+- [x] `docker compose run --rm test` is green (AC-AF-9)
+- [x] Every git and GitHub step is a command for you to run. I run none of them
 
 **Verification:**
-- [ ] `docker compose build test && docker compose run --rm test`
+- [x] `docker compose build test && docker compose run --rm test`
 - [ ] The Android run (phone over USB, or an AVD) launches into the shell
 
 **Dependencies:** Task 9
@@ -251,3 +251,16 @@ The test emails and password go in `firebase/README.md`. (Not `seed/README.md`: 
 - [ ] Slice 4 PR squash-merged, both CI jobs green
 - [ ] You merge `dev` → `main` with a merge commit and tag `v0.1.0`
 - [ ] Next: plan `identity` (Stage 2), only when you ask
+
+---
+
+## Deferred findings (Stage 1 close, 2026-11-17)
+
+- **`npm audit` in `firebase/`: 24 findings (14 moderate, 10 high).**
+  - All of them are in the dev-only emulator test tooling (`firebase-tools` 15.36, `firebase` 13, `@firebase/rules-unit-testing` 6). It runs locally and in CI against `demo-fridge` and never ships.
+  - npm's "fixes" are major downgrades (`firebase-tools` 13, `firebase` 9, `rules-unit-testing` 2).
+  - Non-breaking transitive fixes exist (`picomatch`, `fdir`, `tinyglobby`, `node-gyp`, `re2`, `gcp-metadata`, `google-gax`), but `npm audit fix` would rebuild `re2` with install scripts.
+  - **Review:** at Stage 2 close, or when a `firebase-tools` release clears them.
+- **`cupertino_icons` 2.0.0 (major):** a template dependency the app doesn't use. **Review:** at Stage 2 close; dropping it is the simplest fix.
+- **`vector_math`, `vm_service`, `test_api`, `material_color_utilities`:** pinned by the Flutter SDK. They move with a Flutter bump.
+- **`IndexedStack` builds all three tabs at launch:** fine with empty states. **Review:** when planning `inventory`, before tabs open Firestore listeners (build a tab on its first visit instead).

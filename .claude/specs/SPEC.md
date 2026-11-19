@@ -315,9 +315,9 @@ Delivered inside `app-foundation`.
 - **CI job `rules`**: `actions/setup-node` (`node-version-file: firebase/.nvmrc`) + `actions/setup-java` (21) → `npm ci` → `npm test` (in `firebase/`).
 
 Acceptance:
-- [ ] `cd firebase && npm test` passes locally and in CI.
-- [ ] The app run with `USE_EMULATOR=true` shows its reads and writes in the Emulator UI (http://localhost:4000), and the seed data is visible.
-- [ ] Without `USE_EMULATOR`, the app uses the prod options from `firebase_options.dart`.
+- [x] `cd firebase && npm test` passes locally and in CI. *(Slice 2; rerun at Stage 1 close, 2026-11-17)*
+- [ ] The app run with `USE_EMULATOR=true` shows its reads and writes in the Emulator UI (http://localhost:4000), and the seed data is visible. *(Seed data visible since Slice 2. Stage 1 makes no reads or writes, so that half waits for Stage 2's first sign-up, AC-ID-1; see KI-2 for phones.)*
+- [x] Without `USE_EMULATOR`, the app uses the prod options from `firebase_options.dart`. *(Clean start on a phone, 2026-11-17)*
 
 ### Stages 2–8: Module loop
 
@@ -355,21 +355,18 @@ Skipped in v1: Dependabot, Crashlytics/monitoring, staging Firebase project, Pla
 
 Deferred problems, each with what triggers its fix. Delete an entry when its fix merges.
 
-### KI-1: FlutterFire plugins apply the Kotlin Gradle Plugin
+### KI-1: The Android project still opts out of built-in Kotlin
 
-*Found 2026-11-17 on the first Android run on a phone. Deferred: nothing is broken today.*
+*Found 2026-11-17. The plugin half was fixed at Stage 1's close: firebase_core 5.2.0, firebase_auth 7.1.0 and cloud_firestore 7.2.0 no longer apply the Kotlin Gradle Plugin (KGP), and the "plugins that apply Kotlin Gradle Plugin" build warning is gone.*
 
-- **Symptom:** every Android build prints `WARNING: Your app uses the following plugins that apply Kotlin Gradle Plugin (KGP): firebase_auth, firebase_core` and warns that future Flutter versions will fail to build. The APK still builds and runs.
-- **Background:** AGP 9 replaces the separate Kotlin Gradle Plugin with built-in Kotlin. Flutter 3.47 keeps the old way working for now, and its template opts out of the new one in `android/gradle.properties` (`android.builtInKotlin=false`, `android.newDsl=false`). A future Flutter release drops that support, and then builds with KGP-applying plugins fail ([Flutter's migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)).
-- **Cause:** the `android/build.gradle` of firebase_core 5.1.0 and firebase_auth 7.0.1 contains `apply plugin: 'kotlin-android'`, which runs only while built-in Kotlin is off. Flutter's check (`FlutterPluginUtils.kt`) searches the build script's text, so it flags the line even when it doesn't run: turning built-in Kotlin on doesn't silence it (checked 2026-11-17). Our app doesn't apply KGP itself (`android/app/build.gradle.kts`), and cloud_firestore is Java-only.
-- **Risk:** low while Flutter stays pinned at 3.47.6. It becomes a build break on the Flutter release that removes KGP support.
-- **Fix (available):** firebase_core 5.2.0 and firebase_auth 7.1.0 (published 2026-11-16) migrate to built-in Kotlin and no longer contain that line.
-  1. In `pubspec.yaml`, raise `firebase_core` to `^5.2.0`, `firebase_auth` to `^7.1.0` and `cloud_firestore` to `^7.2.0` (same FlutterFire release). Run `flutter pub get` and commit `pubspec.lock`.
-  2. Run the quality gate and `flutter build apk --debug`. The KGP warning should be gone; that's expected from the plugin source, not yet tested.
-  3. Check that `flutter run` still launches on the phone. CI builds web only, so this check is manual.
-  4. Keep both opt-outs in `android/gradle.properties` until Flutter's guide says to flip them. A debug APK already builds with `android.builtInKotlin=true` (checked 2026-11-17), so that flip should be low-risk. After it, check whether `android/settings.gradle.kts` still needs its `org.jetbrains.kotlin.android` line.
-- **When:** at the next stage-end dependency check ([dev_rules §9](../dev_rules.md#9-security)), which is Stage 1's close unless it's done sooner. Always before bumping Flutter.
-- **Ignorable noise in the same build log:**
+- **What's left:** `android/gradle.properties` keeps Flutter's template opt-outs (`android.builtInKotlin=false`, `android.newDsl=false`), so Flutter still applies KGP itself. A future Flutter release drops that ([Flutter's migration guide](https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin/for-app-developers)).
+- **Risk:** low while Flutter stays pinned at 3.47.6. A debug APK already builds with `android.builtInKotlin=true` (checked 2026-11-17).
+- **Fix, before bumping Flutter:**
+  1. Set `android.builtInKotlin=true`.
+  2. Check whether `android/settings.gradle.kts` still needs its `org.jetbrains.kotlin.android` line.
+  3. Build a debug APK and run it on the phone.
+  4. Keep `android.newDsl=false` until Flutter's guide says otherwise.
+- **Ignorable noise in Android build logs:**
   - "SDK XML version 4": the command-line tools are newer than AGP's SDK parser.
   - cloud_firestore's "unchecked or unsafe operations": a note about the plugin's own Java code.
   - The `--enable-dart-profiling` Intent notice: comes from the Flutter tool's debug launch.
