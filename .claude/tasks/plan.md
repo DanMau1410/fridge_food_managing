@@ -159,13 +159,13 @@ Task 2 (rules, JS) and Tasks 3–4 (Dart) are independent of each other.
 
 **Checkpoint 1:**
 - [x] The gate and `cd firebase && npm test` are green
-- [ ] REVIEW written → you commit, open a PR, `flutter` and `rules` are green, you squash-merge
+- [x] REVIEW written → you commit, open a PR, `flutter` and `rules` are green, you squash-merge (#12, with the `.gitignore` cleanup)
 
 ### Slice 2: `feat/identity-email`, sign up → choose a username → shell
-- [ ] Task 5: `AuthRepository` with email sign-up, sign-in, sign-out and error mapping
-- [ ] Task 6: Sign-in screen, email only (AC-ID-1, 2)
-- [ ] Task 7: Choose-username screen (AC-ID-4, 5, 6)
-- [ ] Task 8: Session, gate and provider wiring (AC-ID-1, 7)
+- [x] Task 5: `AuthRepository` with email sign-up, sign-in, sign-out and error mapping
+- [x] Task 6: Sign-in screen, email only (AC-ID-1, 2)
+- [x] Task 7: Choose-username screen (AC-ID-4, 5, 6)
+- [x] Task 8: Session, gate and provider wiring (AC-ID-1, 7)
 - [ ] Task 9: KI-2, emulator runs on the phone
 
 **Security:**
@@ -192,7 +192,7 @@ Task 2 (rules, JS) and Tasks 3–4 (Dart) are independent of each other.
 - [ ] Task 11: Edit the display name (AC-ID-11)
 - [ ] Task 12: Continue with Google (AC-ID-3)
 - [ ] Task 13: Forgot password (AC-ID-8)
-- [ ] Task 14: Seed profiles for ana and bea
+- [ ] Task 14: Seed profiles for ana and bea, after fixing KI-4 (emulator project id)
 
 **Security:**
 - **Boundaries:** Google OAuth (the web popup and Android's provider flow), password reset, sign-out, and the display-name update.

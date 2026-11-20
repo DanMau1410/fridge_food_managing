@@ -36,7 +36,7 @@
 - [x] The rules section says exactly what Task 2 tests
 
 **Verification:**
-- [ ] You read both diffs (docs only)
+- [x] You read both diffs (docs only; merged in #12)
 
 **Dependencies:** None (your answers are in)
 **Files:** `.claude/specs/SPEC-identity.md`, `.claude/specs/SPEC.md`
@@ -129,7 +129,7 @@
 **Scope:** S
 
 ### Checkpoint 1
-- [ ] Tasks 1–4 verified, secret scans clean → REVIEW → you commit, open a PR, `flutter` and `rules` are green, you squash-merge
+- [x] Tasks 1–4 verified, secret scans clean → REVIEW → you commit, open a PR, `flutter` and `rules` are green, you squash-merge (#12)
 
 ---
 
@@ -149,13 +149,13 @@
 Google sign-in and password reset come in Tasks 12–13.
 
 **Acceptance criteria:**
-- [ ] A table test maps every code above, plus an unknown code → `unknown`
-- [ ] Sign-up with a display name sets it on the Auth user, and `watchAuthUser` emits the matching `AppUser`
-- [ ] A mocked `FirebaseAuthException` comes out as `AuthException`, with no raw message
+- [x] A table test maps every code above, plus an unknown code → `unknown`
+- [x] Sign-up with a display name sets it on the Auth user, and `watchAuthUser` emits the matching `AppUser`
+- [x] A mocked `FirebaseAuthException` comes out as `AuthException`, with no raw message
 
 **Verification:**
-- [ ] `flutter test test/data/auth_repository_test.dart`
-- [ ] The gate is green
+- [x] `flutter test test/data/auth_repository_test.dart`
+- [x] The gate is green
 
 **Dependencies:** Task 3
 **Files:** `pubspec.yaml`, `pubspec.lock`, `lib/data/repositories/auth_repository.dart`, `test/data/auth_repository_test.dart`
@@ -172,13 +172,13 @@ Google sign-in and password reset come in Tasks 12–13.
 - Every string goes in `app_en.arb` and `app_es.arb`.
 
 **Acceptance criteria:**
-- [ ] A wrong password, an unknown email and a malformed email each show a localized message and stay on Sign-in. No error code appears (AC-ID-2)
-- [ ] A 5-character password at sign-up is refused before any call, and a 6-character one goes through
-- [ ] The screen renders in English and Spanish (AC-ID-10, this screen)
+- [x] A wrong password, an unknown email and a malformed email each show a localized message and stay on Sign-in. No error code appears (AC-ID-2)
+- [x] A 5-character password at sign-up is refused before any call, and a 6-character one goes through
+- [x] The screen renders in English and Spanish (AC-ID-10, this screen)
 
 **Verification:**
-- [ ] `flutter test test/ui/auth/`
-- [ ] The gate is green
+- [x] `flutter test test/ui/auth/`
+- [x] The gate is green
 
 **Dependencies:** Task 5
 **Files:** `lib/ui/auth/view_models/sign_in_view_model.dart`, `lib/ui/auth/widgets/sign_in_screen.dart`, `test/ui/auth/view_models/sign_in_view_model_test.dart`, `test/ui/auth/sign_in_screen_test.dart`, `lib/l10n/app_en.arb`, `lib/l10n/app_es.arb` (plus the generated `app_localizations*.dart`)
@@ -195,15 +195,15 @@ Google sign-in and password reset come in Tasks 12–13.
 - **`ChooseUsernameScreen`** with its arb strings.
 
 **Acceptance criteria:**
-- [ ] `ab`, a 21-character name, `dan m` and `dan-m` show a validation message, and the fake records no write (AC-ID-6)
-- [ ] `Dan_M` stores `dan_m` (AC-ID-4)
-- [ ] A taken name shows "Username already taken" and changes nothing (AC-ID-5)
-- [ ] The display name is prefilled. When it's left empty, it's stored as the username
-- [ ] The screen renders in English and Spanish
+- [x] `ab`, a 21-character name, `dan m` and `dan-m` show a validation message, and the fake records no write (AC-ID-6)
+- [x] `Dan_M` stores `dan_m` (AC-ID-4)
+- [x] A taken name shows "Username already taken" and changes nothing (AC-ID-5)
+- [x] The display name is prefilled. When it's left empty, it's stored as the username
+- [x] The screen renders in English and Spanish
 
 **Verification:**
-- [ ] `flutter test test/ui/auth/`
-- [ ] The gate is green
+- [x] `flutter test test/ui/auth/`
+- [x] The gate is green
 
 **Dependencies:** Tasks 4, 6 (shared arb files)
 **Files:** `lib/ui/auth/view_models/choose_username_view_model.dart`, `lib/ui/auth/widgets/choose_username_screen.dart`, `test/ui/auth/view_models/choose_username_view_model_test.dart`, `test/ui/auth/choose_username_screen_test.dart`, `lib/l10n/app_en.arb`, `lib/l10n/app_es.arb`
@@ -226,14 +226,14 @@ Google sign-in and password reset come in Tasks 12–13.
 - **`main.dart`** wraps `FridgeApp` in a `MultiProvider`. `FridgeApp` takes `home`, `main` passes `AuthGate`, and the shell tests pass `AppShell`.
 
 **Acceptance criteria:**
-- [ ] View model test: sign-up → needs username → claim → ready (AC-ID-1)
-- [ ] View model test: sign out → signed out → sign back in with a profile → ready, skipping Choose-username (AC-ID-7)
-- [ ] A profile stream error → the error state, with no crash. The shell tests still pass
+- [x] View model test: sign-up → needs username → claim → ready (AC-ID-1)
+- [x] View model test: sign out → signed out → sign back in with a profile → ready, skipping Choose-username (AC-ID-7)
+- [x] A profile stream error → the error state, with no crash. The shell tests still pass
 
 **Verification:**
-- [ ] `flutter test`
-- [ ] The gate is green
-- [ ] `cd firebase && npm run emulators`, then the `web-emulator` launch config: sign up, claim a username, land in the shell. The Emulator UI shows the user, `users/{uid}` and `usernames/{name}`
+- [x] `flutter test`
+- [x] The gate is green
+- [x] `cd firebase && npm run emulators`, then the `web-emulator` launch config: sign up, claim a username, land in the shell. The Emulator UI shows the user, `users/{uid}` and `usernames/{name}` *(2026-11-20: flow works and both docs exist, but under the `fridge-food-managing` namespace, so the UI shows only the Auth user: [KI-4](../specs/SPEC.md#ki-4-the-apps-emulator-traffic-lands-under-the-prod-project-id))*
 
 **Dependencies:** Tasks 6, 7
 **Files:** `pubspec.yaml`, `pubspec.lock`, `lib/config/dependencies.dart`, `lib/ui/auth/view_models/session_view_model.dart`, `lib/ui/auth/widgets/auth_gate.dart`, `lib/main.dart`, `test/ui/auth/view_models/session_view_model_test.dart`, `test/ui/core/app_shell_test.dart`
@@ -248,7 +248,7 @@ Google sign-in and password reset come in Tasks 12–13.
 
 **Acceptance criteria:**
 - [ ] With `adb reverse` on both ports, the phone's `flutter run -d A059 --dart-define=USE_EMULATOR=true` signs up and claims a username, visible in the Emulator UI
-- [ ] Web against the emulator still works
+- [x] Web against the emulator still works (2026-11-20; docs land under the prod project id, see KI-4)
 
 **Verification:**
 - [ ] The manual run above, and the gate is green
@@ -356,6 +356,7 @@ Google sign-in and password reset come in Tasks 12–13.
 ### Task 14: Seed profiles for ana and bea
 
 **Description:**
+- First, fix [KI-4](../specs/SPEC.md#ki-4-the-apps-emulator-traffic-lands-under-the-prod-project-id) with its recommended option: with `USE_EMULATOR`, `main.dart` initializes a named app with `projectId: 'demo-fridge'` and passes its Auth and Firestore instances to `providers(...)`. Without that, the app can't see the seed docs. Delete KI-4 in the same change.
 - Add `users/{uid}` and `usernames/` docs for the seed accounts:
   - ana: uid `U2UNtJp7i9yw9P4zFTYcN9vHte3B`, username `ana`, display name `Ana`
   - bea: uid `aIBm7jR48E48EN07SelprAFalNrl`, username `bea`, display name `Bea`
@@ -363,6 +364,7 @@ Google sign-in and password reset come in Tasks 12–13.
 
 **Acceptance criteria:**
 - [ ] After `npm run emulators`, signing in as `ana@fridge.test` goes straight to the shell
+- [ ] A new sign-up's `users/{uid}` and `usernames/{name}` show in the Emulator UI, on web and on the phone (KI-4)
 - [ ] The account screen shows `@ana`
 - [ ] A restart shows the same data and nothing else
 
@@ -371,8 +373,8 @@ Google sign-in and password reset come in Tasks 12–13.
 - [ ] `npm test` is still green
 
 **Dependencies:** Tasks 2, 10
-**Files:** `firebase/seed/**`, `firebase/README.md`
-**Scope:** S
+**Files:** `lib/main.dart`, `.claude/specs/SPEC.md`, `firebase/seed/**`, `firebase/README.md`
+**Scope:** S–M
 
 ### Checkpoint 3
 - [ ] Tasks 10–14 verified, secret scans clean

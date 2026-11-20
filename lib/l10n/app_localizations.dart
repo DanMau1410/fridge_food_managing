@@ -295,6 +295,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'cup'**
   String get unitCup;
+
+  /// Sign-in screen title and submit button in sign-in mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in'**
+  String get signIn;
+
+  /// Sign-in screen title and submit button in sign-up mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Create account'**
+  String get createAccount;
+
+  /// Email field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
+  /// Password field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get passwordLabel;
+
+  /// Optional display name field at sign-up.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name (optional)'**
+  String get displayNameOptionalLabel;
+
+  /// Switches the sign-in screen to sign-up mode.
+  ///
+  /// In en, this message translates to:
+  /// **'New here? Create an account'**
+  String get switchToSignUp;
+
+  /// Switches the sign-in screen to sign-in mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account? Sign in'**
+  String get switchToSignIn;
+
+  /// Validation: empty email.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your email.'**
+  String get errorEmailRequired;
+
+  /// Validation: empty password.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password.'**
+  String get errorPasswordRequired;
+
+  /// Validation: password shorter than the minimum at sign-up.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least {min} characters.'**
+  String errorPasswordTooShort(int min);
+
+  /// Sign-in failed. Same text for an unknown email and a wrong password.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong email or password.'**
+  String get authInvalidCredentials;
+
+  /// Sign-up failed: the email has an account.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists. Sign in instead.'**
+  String get authEmailInUse;
+
+  /// Sign-up failed: Firebase rejected the password.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a stronger password.'**
+  String get authWeakPassword;
+
+  /// Malformed email.
+  ///
+  /// In en, this message translates to:
+  /// **'That email address doesn\'t look right.'**
+  String get authInvalidEmail;
+
+  /// Firebase throttled the sign-in attempts.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Try again later.'**
+  String get authTooManyRequests;
+
+  /// The email belongs to an account with a different sign-in method.
+  ///
+  /// In en, this message translates to:
+  /// **'This email already signs in another way.'**
+  String get authAccountExists;
+
+  /// A network error.
+  ///
+  /// In en, this message translates to:
+  /// **'No connection. Check your internet and try again.'**
+  String get errorNoConnection;
+
+  /// Any other error.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get errorGeneric;
+
+  /// Choose-username screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a username'**
+  String get chooseUsernameTitle;
+
+  /// Explains the username on the Choose-username screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Friends find and invite you by your username. You can\'t change it later.'**
+  String get chooseUsernameIntro;
+
+  /// Username field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get usernameLabel;
+
+  /// Helper text under the username field.
+  ///
+  /// In en, this message translates to:
+  /// **'3–20 characters: a–z, 0–9 and _'**
+  String get usernameHelper;
+
+  /// Validation: the username breaks the rule.
+  ///
+  /// In en, this message translates to:
+  /// **'Use 3–20 characters: a–z, 0–9 or _, with no spaces.'**
+  String get usernameInvalid;
+
+  /// Another account has this username.
+  ///
+  /// In en, this message translates to:
+  /// **'Username already taken'**
+  String get usernameTaken;
+
+  /// Display name field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Display name'**
+  String get displayNameLabel;
+
+  /// Helper text under the display name field.
+  ///
+  /// In en, this message translates to:
+  /// **'How others see you. Leave it empty to use your username.'**
+  String get displayNameHelper;
+
+  /// Validation: the display name is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at most {max} characters.'**
+  String displayNameTooLong(int max);
+
+  /// Submits the Choose-username screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueButton;
+
+  /// Signs the user out.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get signOut;
+
+  /// Shown when the account can't be loaded; offers Sign out.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t load your account.'**
+  String get sessionError;
 }
 
 class _AppLocalizationsDelegate

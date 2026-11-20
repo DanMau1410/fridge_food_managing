@@ -59,7 +59,7 @@ void main() {
     for (final MapEntry(key: language, value: labels) in cases.entries) {
       testWidgets(language, (tester) async {
         _setDevice(tester, locale: Locale(language));
-        await tester.pumpWidget(const FridgeApp());
+        await tester.pumpWidget(const FridgeApp(home: AppShell()));
         await tester.pumpAndSettle();
 
         for (final label in labels) {
@@ -78,7 +78,7 @@ void main() {
   group('AC-AF-2: layout follows the window width', () {
     testWidgets('narrow shows a bottom bar', (tester) async {
       _setDevice(tester, size: _narrow);
-      await tester.pumpWidget(const FridgeApp());
+      await tester.pumpWidget(const FridgeApp(home: AppShell()));
 
       expect(find.byType(NavigationBar), findsOneWidget);
       expect(find.byType(NavigationRail), findsNothing);
@@ -86,7 +86,7 @@ void main() {
 
     testWidgets('wide shows a side rail', (tester) async {
       _setDevice(tester, size: _wide);
-      await tester.pumpWidget(const FridgeApp());
+      await tester.pumpWidget(const FridgeApp(home: AppShell()));
 
       expect(find.byType(NavigationRail), findsOneWidget);
       expect(find.byType(NavigationBar), findsNothing);
@@ -97,7 +97,7 @@ void main() {
         tester,
       ) async {
         _setDevice(tester, size: Size(width, 800));
-        await tester.pumpWidget(const FridgeApp());
+        await tester.pumpWidget(const FridgeApp(home: AppShell()));
 
         expect(
           find.byType(NavigationRail),
@@ -145,7 +145,7 @@ void main() {
     tester,
   ) async {
     _setDevice(tester);
-    await tester.pumpWidget(const FridgeApp());
+    await tester.pumpWidget(const FridgeApp(home: AppShell()));
 
     await tester.tap(find.byTooltip('Household & account'));
     await tester.pumpAndSettle();
