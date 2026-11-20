@@ -384,6 +384,17 @@ Deferred problems, each with what triggers its fix. Delete an entry when its fix
   - Rejected: using the PC's LAN IP. The emulators would have to bind to `0.0.0.0`, which exposes them to the network.
 - **Impact now:** none. Stage 1 makes no Firebase calls.
 
+### KI-3: The offline cache survives sign-out
+
+*Found 2026-11-19, while planning `identity`. Deferred to `households` (decided 2026-11-19).*
+
+- **Problem:** Firestore keeps its offline cache on the device after sign-out, since persistence is on for Android and web. While offline, the next person to sign in on the same device could read the previous user's cached docs. [dev_rules.md §9](../dev_rules.md#app-code) requires that sign-out doesn't leave them readable.
+- **Impact now:** low. In Stage 2 the cache holds only `users/` and `usernames/` docs, which any signed-in user can read anyway.
+- **Fix, before `households` caches household data:**
+  - On sign-out, call `terminate()` and then `clearPersistence()`.
+  - Spike it on web and Android first: after `terminate()`, the Firestore instance has to be recreated and its settings applied again.
+  - Update SPEC-identity's sign-out line in the same change.
+
 ## Open Questions
 
 1. **Seed recipes**: which ~10 starter recipes (EN + ES)? Claude will propose a list during `recipes` planning.

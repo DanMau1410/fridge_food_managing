@@ -11,6 +11,44 @@ service cloud.firestore {
       return false;
     }
 
-    // Default deny: no match block grants access yet. Modules add their own.
+    function validUsername(u) {
+      return u is string && u.matches('^[a-z0-9_]{3,20}$');
+    }
+
+    // Mirrors the app's parseDisplayName: 1–30 characters, not just spaces.
+    function validDisplayName(s) {
+      return s is string && s.size() <= 30 && s.trim().size() > 0;
+    }
+
+    // Default deny: only the match blocks below grant access. Modules add their own.
+
+    // identity: a username is claimed by writing both docs in one transaction.
+    // Each create checks the other with getAfter, so neither can exist alone.
+    match /usernames/{username} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && validUsername(username)
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid
+        // The caller's profile must name this username after the write. Usernames
+        // never change on update, so this also limits each account to one name.
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username == username;
+    }
+
+    match /users/{uid} {
+      allow get: if signedIn();
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasAll(['username', 'displayName'])
+        && request.resource.data.keys().hasOnly(['username', 'displayName'])
+        && validUsername(request.resource.data.username)
+        && validDisplayName(request.resource.data.displayName)
+        && getAfter(/databases/$(database)/documents/usernames/$(request.resource.data.username)).data.uid == uid;
+      // Only the display name changes; `households` adds its own householdId path.
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName'])
+        && validDisplayName(request.resource.data.displayName);
+    }
   }
 }
