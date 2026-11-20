@@ -18,7 +18,7 @@ No user-visible feature yet beyond the empty, navigable shell.
 
 **In**
 - `lib/main.dart`: `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)`.
-  - If `const bool.fromEnvironment('USE_EMULATOR')`, connect Auth to `:9099` and Firestore to `:8085`. The host is `localhost` on web and `10.0.2.2` on Android. Passing `localhost` covers both, because the plugins map it to `10.0.2.2` on Android.
+  - If `const bool.fromEnvironment('USE_EMULATOR')`, connect Auth to `:9099` and Firestore to `:8085`. The host is `localhost` everywhere, with `automaticHostMapping: false` so the plugins don't rewrite it to `10.0.2.2` on Android. On Android (phone or AVD), `adb reverse` forwards both ports to this machine over USB.
   - Enable Firestore persistence on web.
 - `lib/config/dependencies.dart`: **moved to `identity`** (decided 2026-11-14), where the first repository gets registered. Here it would have nothing to provide.
 - `lib/ui/core/app_shell.dart`: three destinations: **Food** (inventory), **Groceries**, **Recipes**.
