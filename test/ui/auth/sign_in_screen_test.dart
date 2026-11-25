@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fridge_food_managing/ui/auth/widgets/auth_gate.dart';
 import 'package:fridge_food_managing/ui/auth/widgets/sign_in_screen.dart';
 
 import '../../fakes.dart';
@@ -102,5 +103,104 @@ void main() {
 
     expect(find.text('Correo o contraseña incorrectos.'), findsOneWidget);
     expect(find.text('¿Eres nuevo? Crea una cuenta'), findsOneWidget);
+    expect(find.text('Continuar con Google'), findsOneWidget);
+    expect(find.text('¿Olvidaste tu contraseña?'), findsOneWidget);
+  });
+
+  group('AC-ID-3: Continue with Google', () {
+    testWidgets('a first-time user gets Choose-username, name prefilled', (
+      tester,
+    ) async {
+      final auth = MockFirebaseAuth(
+        mockUser: MockUser(uid: 'g1', displayName: 'Ana Google'),
+      );
+      await tester.pumpWidget(testApp(auth, const AuthGate()));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Continue with Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose a username'), findsOneWidget);
+      expect(find.widgetWithText(TextFormField, 'Ana Google'), findsOneWidget);
+    });
+
+    testWidgets('closing the popup shows no message', (tester) async {
+      await _pump(tester, ThrowingAuth('popup-closed-by-user'));
+      await tester.tap(find.text('Continue with Google'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Something went wrong. Try again.'), findsNothing);
+      expect(find.byType(SignInScreen), findsOneWidget);
+    });
+
+    testWidgets('an email used by a password account shows a message', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        ThrowingAuth('account-exists-with-different-credential'),
+      );
+      await tester.tap(find.text('Continue with Google'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('This email already signs in another way.'),
+        findsOneWidget,
+      );
+    });
+  });
+
+  group('AC-ID-8: forgot password', () {
+    const sent =
+        'If an account uses that email, a reset link is on its way. '
+        'Check your inbox.';
+
+    Future<void> requestReset(
+      WidgetTester tester,
+      FirebaseAuth auth,
+      String email,
+    ) async {
+      await _pump(tester, auth);
+      await tester.enterText(_email, email);
+      await tester.tap(find.text('Forgot password?'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Send link'));
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a known email gets the confirmation', (tester) async {
+      await requestReset(tester, MockFirebaseAuth(), 'ana@example.com');
+
+      expect(find.text(sent), findsOneWidget);
+    });
+
+    testWidgets('an unknown email gets the identical confirmation', (
+      tester,
+    ) async {
+      await requestReset(
+        tester,
+        ThrowingAuth('user-not-found'),
+        'nobody@example.com',
+      );
+
+      expect(find.text(sent), findsOneWidget);
+    });
+
+    testWidgets('a malformed email shows the email error', (tester) async {
+      await requestReset(tester, ThrowingAuth('invalid-email'), 'ana@');
+
+      expect(find.text(sent), findsNothing);
+      expect(
+        find.text("That email address doesn't look right."),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an empty email is refused before any call', (tester) async {
+      await requestReset(tester, ThrowingAuth('invalid-email'), '  ');
+
+      expect(find.text('Enter your email.'), findsOneWidget);
+      expect(find.text("That email address doesn't look right."), findsNothing);
+    });
   });
 }

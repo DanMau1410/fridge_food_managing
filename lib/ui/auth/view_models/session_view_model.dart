@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../../../data/repositories/auth_repository.dart';
 import '../../../data/repositories/user_repository.dart';
 import '../../../domain/models/user_profile.dart';
+import '../../../domain/username.dart';
 
 enum SessionStatus { loading, signedOut, needsUsername, ready, error }
 
@@ -40,6 +41,22 @@ class SessionViewModel extends ChangeNotifier {
   }
 
   Future<void> signOut() => _auth.signOut();
+
+  /// Saves [input] as the display name, blank meaning the username; input
+  /// that fails [parseDisplayName] is ignored. Firestore applies the write
+  /// locally first, so [profile] updates at once, offline too; callers
+  /// needn't wait for the server.
+  Future<void> updateDisplayName(String input) async {
+    final profile = _profile;
+    if (profile == null) return;
+    final name = parseDisplayName(input, profile.username);
+    if (name == null) return;
+    try {
+      await _users.updateDisplayName(profile.uid, name);
+    } catch (e) {
+      debugPrint('Display name update failed: ${e.runtimeType}');
+    }
+  }
 
   void _onUser(AppUser? user) {
     final uidChanged = user?.uid != _user?.uid;

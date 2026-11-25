@@ -55,4 +55,9 @@ class UserRepository {
         tx.set(_username(username), {'uid': uid});
         tx.set(_user(uid), {'username': username, 'displayName': displayName});
       });
+
+  /// Sets [displayName] (as returned by [parseDisplayName]); the rules allow
+  /// no other field to change (AC-ID-11).
+  Future<void> updateDisplayName(String uid, String displayName) =>
+      _user(uid).update({'displayName': displayName});
 }

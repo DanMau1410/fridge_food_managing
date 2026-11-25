@@ -166,7 +166,7 @@ Task 2 (rules, JS) and Tasks 3–4 (Dart) are independent of each other.
 - [x] Task 6: Sign-in screen, email only (AC-ID-1, 2)
 - [x] Task 7: Choose-username screen (AC-ID-4, 5, 6)
 - [x] Task 8: Session, gate and provider wiring (AC-ID-1, 7)
-- [ ] Task 9: KI-2, emulator runs on the phone
+- [x] Task 9: KI-2, emulator runs on the phone
 
 **Security:**
 - **Boundaries:** user input (email, password, username, display name) and Firebase Auth errors.
@@ -181,18 +181,18 @@ Task 2 (rules, JS) and Tasks 3–4 (Dart) are independent of each other.
 - **Emulator access:** `adb reverse` over USB. The emulators stay on `localhost`, never `0.0.0.0`.
 
 **Checkpoint 2:**
-- [ ] The gate is green
-- [ ] Web against the emulator: sign up → Choose-username → shell, and the Emulator UI shows the Auth user plus both docs (AC-ID-1, AC-AF-3)
-- [ ] The same on the phone, over `adb reverse`
-- [ ] Carried over from Stage 1: web in English, Spanish and a fallback language, in a narrow and a wide window
-- [ ] REVIEW written → you commit, open a PR, CI is green, you squash-merge
+- [x] The gate is green
+- [x] Web against the emulator: sign up → Choose-username → shell, and the Emulator UI shows the Auth user plus both docs (AC-ID-1, AC-AF-3) *(the docs over REST: KI-4)*
+- [x] The same on the phone, over `adb reverse` (Firestore docs checked over REST, KI-4)
+- [ ] Carried over from Stage 1: web in English, Spanish and a fallback language, in a narrow and a wide window → moved to Checkpoint 3
+- [x] REVIEW written → you commit, open a PR, CI is green, you squash-merge (#13)
 
 ### Slice 3: `feat/identity-account`, account, Google, reset, seed
-- [ ] Task 10: Account screen and sign-out (AC-ID-7)
-- [ ] Task 11: Edit the display name (AC-ID-11)
-- [ ] Task 12: Continue with Google (AC-ID-3)
-- [ ] Task 13: Forgot password (AC-ID-8)
-- [ ] Task 14: Seed profiles for ana and bea, after fixing KI-4 (emulator project id)
+- [x] Task 10: Account screen and sign-out (AC-ID-7)
+- [x] Task 11: Edit the display name (AC-ID-11)
+- [ ] Task 12: Continue with Google (AC-ID-3) → code and tests done; the manual Google runs (web popup, phone) are in Checkpoint 3
+- [x] Task 13: Forgot password (AC-ID-8)
+- [x] Task 14: Seed profiles for ana and bea, after fixing KI-4 (emulator project id) → KI-4 deleted; the phone sign-up check is in Checkpoint 3
 
 **Security:**
 - **Boundaries:** Google OAuth (the web popup and Android's provider flow), password reset, sign-out, and the display-name update.
@@ -212,13 +212,15 @@ Task 2 (rules, JS) and Tasks 3–4 (Dart) are independent of each other.
 - **Seed:** made-up data, emulator only.
 
 **Checkpoint 3:**
-- [ ] The gate is green
+- [x] The gate is green (2026-11-24: 178 tests, rules 21/21, secret scans clean)
 - [ ] Manual checks against the emulator:
   - Google on web and on the phone
-  - the reset link in the Auth emulator
-  - sign-out and sign back in
-  - editing the display name
+  - ~~the reset link in the Auth emulator~~ (web, 2026-11-24)
+  - ~~sign-out and sign back in~~ (web, 2026-11-24)
+  - ~~editing the display name~~ (web, 2026-11-24)
+  - on the phone: sign up, and the docs show in the Emulator UI (KI-4)
   - every identity screen in English and Spanish
+  - carried over from Stage 1: web in a fallback language, in a narrow and a wide window
 - [ ] REVIEW written → you commit, open a PR, CI is green, you squash-merge
 
 ### Slice 4: `ci/release`, release pipeline and stage close

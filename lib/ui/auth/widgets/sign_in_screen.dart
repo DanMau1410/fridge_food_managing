@@ -19,7 +19,8 @@ String authFailureMessage(AppLocalizations l10n, AuthFailure failure) =>
       AuthFailure.cancelled || AuthFailure.unknown => l10n.errorGeneric,
     };
 
-/// Email sign-in, switchable to sign-up (AC-ID-1, AC-ID-2).
+/// Email sign-in, switchable to sign-up, plus Google and password reset
+/// (AC-ID-1, 2, 3, 8).
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -51,6 +52,11 @@ class _SignInScreenState extends State<SignInScreen> {
       displayName: _viewModel.signUp ? _displayName.text : null,
     );
   }
+
+  void _forgotPassword() => showDialog<void>(
+    context: context,
+    builder: (_) => _ResetPasswordDialog(_viewModel, _email.text),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -134,6 +140,16 @@ class _SignInScreenState extends State<SignInScreen> {
                                 ? l10n.displayNameTooLong(displayNameMaxLength)
                                 : null,
                           ),
+                        if (!signUp)
+                          Align(
+                            alignment: AlignmentDirectional.centerEnd,
+                            child: TextButton(
+                              onPressed: _viewModel.busy
+                                  ? null
+                                  : _forgotPassword,
+                              child: Text(l10n.forgotPassword),
+                            ),
+                          ),
                         if (failure != null)
                           Text(
                             authFailureMessage(l10n, failure),
@@ -152,6 +168,12 @@ class _SignInScreenState extends State<SignInScreen> {
                                 )
                               : Text(title),
                         ),
+                        OutlinedButton(
+                          onPressed: _viewModel.busy
+                              ? null
+                              : _viewModel.signInWithGoogle,
+                          child: Text(l10n.continueWithGoogle),
+                        ),
                         TextButton(
                           onPressed: _viewModel.busy
                               ? null
@@ -169,6 +191,105 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+/// Asks for the email and sends a reset link (AC-ID-8). Known and unknown
+/// emails get the same confirmation.
+class _ResetPasswordDialog extends StatefulWidget {
+  const _ResetPasswordDialog(this.viewModel, this.email);
+
+  final SignInViewModel viewModel;
+  final String email;
+
+  @override
+  State<_ResetPasswordDialog> createState() => _ResetPasswordDialogState();
+}
+
+class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
+  final _form = GlobalKey<FormState>();
+  late final _email = TextEditingController(text: widget.email.trim());
+  bool _busy = false;
+  bool _sent = false;
+  AuthFailure? _failure;
+
+  @override
+  void dispose() {
+    _email.dispose();
+    super.dispose();
+  }
+
+  Future<void> _send() async {
+    if (_busy || !_form.currentState!.validate()) return;
+    setState(() {
+      _busy = true;
+      _failure = null;
+    });
+    final failure = await widget.viewModel.sendPasswordReset(_email.text);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      _failure = failure;
+      _sent = failure == null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final material = MaterialLocalizations.of(context);
+    final failure = _failure;
+    if (_sent) {
+      return AlertDialog(
+        title: Text(l10n.resetPasswordTitle),
+        content: Text(l10n.resetPasswordSent),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(material.okButtonLabel),
+          ),
+        ],
+      );
+    }
+    return AlertDialog(
+      title: Text(l10n.resetPasswordTitle),
+      content: Form(
+        key: _form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          spacing: 16,
+          children: [
+            Text(l10n.resetPasswordIntro),
+            TextFormField(
+              controller: _email,
+              decoration: InputDecoration(labelText: l10n.emailLabel),
+              keyboardType: TextInputType.emailAddress,
+              autofillHints: const [AutofillHints.email],
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _send(),
+              validator: (value) =>
+                  (value ?? '').trim().isEmpty ? l10n.errorEmailRequired : null,
+            ),
+            if (failure != null)
+              Text(
+                authFailureMessage(l10n, failure),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(material.cancelButtonLabel),
+        ),
+        FilledButton(
+          onPressed: _busy ? null : _send,
+          child: Text(l10n.sendResetLink),
+        ),
+      ],
     );
   }
 }

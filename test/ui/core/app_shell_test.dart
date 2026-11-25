@@ -1,8 +1,12 @@
+import 'package:firebase_auth_mocks/firebase_auth_mocks.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fridge_food_managing/l10n/app_localizations.dart';
 import 'package:fridge_food_managing/main.dart';
+import 'package:fridge_food_managing/ui/auth/widgets/account_screen.dart';
 import 'package:fridge_food_managing/ui/core/app_shell.dart';
+
+import '../auth/harness.dart';
 
 const _narrow = Size(600, 800);
 const _wide = Size(1000, 800);
@@ -141,26 +145,24 @@ void main() {
     });
   });
 
-  testWidgets('account button opens the placeholder and back returns', (
+  testWidgets('account button opens the account screen and back returns', (
     tester,
   ) async {
     _setDevice(tester);
-    await tester.pumpWidget(const FridgeApp(home: AppShell()));
+    final auth = MockFirebaseAuth(
+      signedIn: true,
+      mockUser: MockUser(uid: 'u1'),
+    );
+    await tester.pumpWidget(testApp(auth, const AppShell()));
 
     await tester.tap(find.byTooltip('Household & account'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('Sign-in and household settings are coming soon.'),
-      findsOneWidget,
-    );
+    expect(find.byType(AccountScreen), findsOneWidget);
 
     await tester.pageBack();
     await tester.pumpAndSettle();
     expect(find.byType(NavigationBar), findsOneWidget);
-    expect(
-      find.text('Sign-in and household settings are coming soon.'),
-      findsNothing,
-    );
+    expect(find.byType(AccountScreen), findsNothing);
   });
 }
 

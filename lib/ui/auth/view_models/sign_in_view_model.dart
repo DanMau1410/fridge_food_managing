@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../../data/repositories/auth_repository.dart';
 
-/// Email sign-in and sign-up. On success the session moves on, and this view
+/// Email and Google sign-in, sign-up and password reset. On success the session moves on, and this view
 /// model is disposed with its screen.
 class SignInViewModel extends ChangeNotifier {
   SignInViewModel(this._auth);
@@ -30,19 +30,38 @@ class SignInViewModel extends ChangeNotifier {
     required String email,
     required String password,
     String? displayName,
-  }) async {
+  }) => _run(
+    () => _signUp
+        ? _auth.signUpWithEmail(email, password, displayName: displayName)
+        : _auth.signInWithEmail(email, password),
+  );
+
+  Future<void> signInWithGoogle() => _run(_auth.signInWithGoogle);
+
+  /// Null once sent; an unknown email is "sent" too, so both get the same
+  /// confirmation (AC-ID-8).
+  Future<AuthFailure?> sendPasswordReset(String email) async {
+    try {
+      await _auth.sendPasswordReset(email);
+      return null;
+    } on AuthException catch (e) {
+      return e.failure;
+    } catch (e) {
+      debugPrint('Password reset failed: ${e.runtimeType}');
+      return AuthFailure.unknown;
+    }
+  }
+
+  Future<void> _run(Future<void> Function() call) async {
     if (_busy) return;
     _busy = true;
     _failure = null;
     notifyListeners();
     try {
-      if (_signUp) {
-        await _auth.signUpWithEmail(email, password, displayName: displayName);
-      } else {
-        await _auth.signInWithEmail(email, password);
-      }
+      await call();
     } on AuthException catch (e) {
-      _failure = e.failure;
+      // Closing the Google popup is a choice, not an error.
+      if (e.failure != AuthFailure.cancelled) _failure = e.failure;
     } catch (e) {
       debugPrint('Sign-in failed: ${e.runtimeType}');
       _failure = AuthFailure.unknown;

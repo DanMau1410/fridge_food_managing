@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/app_localizations.dart';
+import '../auth/widgets/account_screen.dart';
 
 /// Window width from which the shell shows a side rail instead of a bottom bar.
 const railBreakpoint = 840.0;
@@ -56,9 +57,7 @@ class _AppShellState extends State<AppShell> {
             icon: const Icon(Icons.account_circle_outlined),
             tooltip: l10n.accountTitle,
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(
-                builder: (_) => const AccountPlaceholderScreen(),
-              ),
+              MaterialPageRoute<void>(builder: (_) => const AccountScreen()),
             ),
           ),
         ],
@@ -124,18 +123,4 @@ class EmptySection extends StatelessWidget {
       child: Text(message, textAlign: TextAlign.center),
     ),
   );
-}
-
-/// Stands in for household and account settings until sign-in exists.
-class AccountPlaceholderScreen extends StatelessWidget {
-  const AccountPlaceholderScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.accountTitle)),
-      body: EmptySection(message: l10n.accountPlaceholder),
-    );
-  }
 }
