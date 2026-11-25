@@ -90,4 +90,41 @@ void main() {
     await pumpEventQueue();
     expect(vm.status, SessionStatus.signedOut);
   });
+
+  group('AC-ID-11: updateDisplayName', () {
+    late FakeFirebaseFirestore db;
+
+    setUp(() async {
+      db = FakeFirebaseFirestore();
+      users = UserRepository(db);
+      await start();
+      await auth.signUpWithEmail('ana@example.com', 'secret1');
+      await pumpEventQueue();
+      await users.claimUsername(vm.user!.uid, 'ana', 'Ana');
+      await pumpEventQueue();
+    });
+
+    Future<Object?> stored() async =>
+        (await db.doc('users/${vm.user!.uid}').get()).data()?['displayName'];
+
+    test('trims, and the profile follows', () async {
+      await vm.updateDisplayName('  Ana María ');
+      await pumpEventQueue();
+
+      expect(await stored(), 'Ana María');
+      expect(vm.profile?.displayName, 'Ana María');
+    });
+
+    test('blank stores the username', () async {
+      await vm.updateDisplayName('   ');
+
+      expect(await stored(), 'ana');
+    });
+
+    test('31 characters writes nothing', () async {
+      await vm.updateDisplayName('x' * 31);
+
+      expect(await stored(), 'Ana');
+    });
+  });
 }

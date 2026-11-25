@@ -4,10 +4,10 @@
   "navGroceries": "Compras",
   "navRecipes": "Recetas",
   "accountTitle": "Hogar y cuenta",
+  "accountSection": "Cuenta",
   "foodEmpty": "Aún no hay alimentos. Lo que añadas aparecerá aquí.",
   "groceriesEmpty": "Tu lista de la compra está vacía.",
   "recipesEmpty": "Aún no hay recetas.",
-  "accountPlaceholder": "El inicio de sesión y los ajustes del hogar llegarán pronto.",
   "categoryVegetables": "Verduras",
   "categoryFruit": "Fruta",
   "categoryMeat": "Carne",
@@ -61,5 +61,12 @@
   "displayNameTooLong": "Usa como máximo {max} caracteres.",
   "continueButton": "Continuar",
   "signOut": "Cerrar sesión",
-  "sessionError": "No pudimos cargar tu cuenta."
+  "sessionError": "No pudimos cargar tu cuenta.",
+  "editDisplayName": "Editar nombre visible",
+  "continueWithGoogle": "Continuar con Google",
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "resetPasswordTitle": "Restablece tu contraseña",
+  "resetPasswordIntro": "Te enviaremos un enlace por correo para elegir una contraseña nueva.",
+  "sendResetLink": "Enviar enlace",
+  "resetPasswordSent": "Si alguna cuenta usa ese correo, te llegará un enlace para restablecer la contraseña. Revisa tu bandeja de entrada."
 }

@@ -1,1 +1,49 @@
-{"kind":"identitytoolkit#DownloadAccountResponse","users":[{"localId":"U2UNtJp7i9yw9P4zFTYcN9vHte3B","lastLoginAt":"1794718134209","displayName":"Ana","emailVerified":false,"email":"ana@fridge.test","salt":"fakeSaltLXOZXagYpyQlGEew4O8P","passwordHash":"fakeHash:salt=fakeSaltLXOZXagYpyQlGEew4O8P:password=fridge-test-123","passwordUpdatedAt":1794718134209,"validSince":"1794718134","createdAt":"1794718134209","providerUserInfo":[{"providerId":"password","email":"ana@fridge.test","federatedId":"ana@fridge.test","rawId":"ana@fridge.test","displayName":"Ana"}],"lastRefreshAt":"2026-11-15T04:48:54.209Z"},{"localId":"aIBm7jR48E48EN07SelprAFalNrl","lastLoginAt":"1794718134221","displayName":"Bea","emailVerified":false,"email":"bea@fridge.test","salt":"fakeSaltRSOJHrqwmi4kLpYjSLrW","passwordHash":"fakeHash:salt=fakeSaltRSOJHrqwmi4kLpYjSLrW:password=fridge-test-123","passwordUpdatedAt":1794718134221,"validSince":"1794718134","createdAt":"1794718134221","providerUserInfo":[{"providerId":"password","email":"bea@fridge.test","federatedId":"bea@fridge.test","rawId":"bea@fridge.test","displayName":"Bea"}],"lastRefreshAt":"2026-11-15T04:48:54.221Z"}]}
+{
+    "kind": "identitytoolkit#DownloadAccountResponse",
+    "users": [
+        {
+            "localId": "U2UNtJp7i9yw9P4zFTYcN9vHte3B",
+            "lastLoginAt": "1794718134209",
+            "displayName": "Ana",
+            "emailVerified": false,
+            "email": "ana@fridge.test",
+            "salt": "fakeSaltLXOZXagYpyQlGEew4O8P",
+            "passwordHash": "fakeHash:salt=fakeSaltLXOZXagYpyQlGEew4O8P:password=fridge-test-123",
+            "passwordUpdatedAt": 1794718134209,
+            "validSince": "1794718134",
+            "createdAt": "1794718134209",
+            "providerUserInfo": [
+                {
+                    "providerId": "password",
+                    "email": "ana@fridge.test",
+                    "federatedId": "ana@fridge.test",
+                    "rawId": "ana@fridge.test",
+                    "displayName": "Ana"
+                }
+            ],
+            "lastRefreshAt": "2026-11-15T04:48:54.209Z"
+        },
+        {
+            "localId": "aIBm7jR48E48EN07SelprAFalNrl",
+            "lastLoginAt": "1794718134221",
+            "displayName": "Bea",
+            "emailVerified": false,
+            "email": "bea@fridge.test",
+            "salt": "fakeSaltRSOJHrqwmi4kLpYjSLrW",
+            "passwordHash": "fakeHash:salt=fakeSaltRSOJHrqwmi4kLpYjSLrW:password=fridge-test-123",
+            "passwordUpdatedAt": 1794718134221,
+            "validSince": "1794718134",
+            "createdAt": "1794718134221",
+            "providerUserInfo": [
+                {
+                    "providerId": "password",
+                    "email": "bea@fridge.test",
+                    "federatedId": "bea@fridge.test",
+                    "rawId": "bea@fridge.test",
+                    "displayName": "Bea"
+                }
+            ],
+            "lastRefreshAt": "2026-11-15T04:48:54.221Z"
+        }
+    ]
+}

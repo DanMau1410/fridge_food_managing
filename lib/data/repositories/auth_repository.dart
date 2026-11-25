@@ -86,6 +86,26 @@ class AuthRepository {
     ),
   );
 
+  /// Google: a popup on web, the provider flow on Android (AC-ID-3).
+  Future<void> signInWithGoogle() => _guard(() {
+    // Ask every time, so a shared device isn't stuck on the last account.
+    final google = GoogleAuthProvider()
+      ..setCustomParameters({'prompt': 'select_account'});
+    return kIsWeb
+        ? _auth.signInWithPopup(google)
+        : _auth.signInWithProvider(google);
+  });
+
+  /// Sends a reset link (AC-ID-8). An unknown email counts as sent, so the
+  /// reply never reveals whether an account exists.
+  Future<void> sendPasswordReset(String email) => _guard(() async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email.trim());
+    } on FirebaseAuthException catch (e) {
+      if (e.code != 'user-not-found') rethrow;
+    }
+  });
+
   Future<void> signOut() => _auth.signOut();
 
   /// Rethrows Firebase errors as [AuthException], logging only the code.

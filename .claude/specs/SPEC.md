@@ -310,14 +310,14 @@ Acceptance:
 Delivered inside `app-foundation`.
 
 - **Firebase Emulator Suite** (auth + firestore) in `firebase/`, project id `demo-fridge`. The `demo-` prefix means emulator runs can never reach real Firebase. `firebase-tools` and `@firebase/rules-unit-testing` are locked in `firebase/package-lock.json`. The Node version is in `.nvmrc`.
-- **App ↔ emulator**: `--dart-define=USE_EMULATOR=true` connects Auth (9099) and Firestore (8085) to `localhost` everywhere, with the plugins' Android host mapping off. On Android (phone or AVD), `adb reverse tcp:9099 tcp:9099` and `adb reverse tcp:8085 tcp:8085` forward both ports over USB. The emulators stay on `localhost`, never `0.0.0.0`.
+- **App ↔ emulator**: `--dart-define=USE_EMULATOR=true` connects Auth (9099) and Firestore (8085) to `localhost` everywhere, with the plugins' Android host mapping off. It runs a named Firebase app on project `demo-fridge`, so the app, the seed and the Emulator UI share one namespace. (Overriding the default app's project doesn't work: on Android it comes from `google-services.json`.) On Android (phone or AVD), `adb reverse tcp:9099 tcp:9099` and `adb reverse tcp:8085 tcp:8085` forward both ports over USB. The emulators stay on `localhost`, never `0.0.0.0`.
 - **Seed data**: committed in `firebase/seed/` and loaded with `--import`, so every dev and test session starts from the same state. It has two users in one household and a few items per section.
 - **Prod**: one real Firebase project, which the user creates and connects via `flutterfire configure --platforms=android,web`. There's no staging project in v1; adding one needs approval first.
 - **CI job `rules`**: `actions/setup-node` (`node-version-file: firebase/.nvmrc`) + `actions/setup-java` (21) → `npm ci` → `npm test` (in `firebase/`).
 
 Acceptance:
 - [x] `cd firebase && npm test` passes locally and in CI. *(Slice 2; rerun at Stage 1 close, 2026-11-17)*
-- [ ] The app run with `USE_EMULATOR=true` shows its reads and writes in the Emulator UI (http://localhost:4000), and the seed data is visible. *(Seed data visible since Slice 2. Stage 1 makes no reads or writes, so that half waits for Stage 2's first sign-up, AC-ID-1. On a phone, forward the ports first: see App ↔ emulator above.)*
+- [x] The app run with `USE_EMULATOR=true` shows its reads and writes in the Emulator UI (http://localhost:4000), and the seed data is visible. *(Web, 2026-11-24: seed account ana signs in to the shell, and a rename and a new sign-up show in the Emulator UI under `demo-fridge`. On a phone, forward the ports first: see App ↔ emulator above.)*
 - [x] Without `USE_EMULATOR`, the app uses the prod options from `firebase_options.dart`. *(Clean start on a phone, 2026-11-17)*
 
 ### Stages 2–8: Module loop
@@ -383,19 +383,6 @@ Deferred problems, each with what triggers its fix. Delete an entry when its fix
   - On sign-out, call `terminate()` and then `clearPersistence()`.
   - Spike it on web and Android first: after `terminate()`, the Firestore instance has to be recreated and its settings applied again.
   - Update SPEC-identity's sign-out line in the same change.
-
-### KI-4: The app's emulator traffic lands under the prod project id
-
-*Found 2026-11-20, during Slice 2's web check against the emulators. Deferred to Task 14 (seed), with the recommended fix (decided 2026-11-20).*
-
-- **Problem:** the emulators run as `demo-fridge`, but the app keeps `projectId: fridge-food-managing` from `firebase_options.dart`. The Firestore emulator namespaces data by project id, so:
-  - the app's docs land in `projects/fridge-food-managing/...`, which the Emulator UI (pinned to `demo-fridge`) doesn't show. AC-AF-3's "visible in the Emulator UI" fails for Firestore. The Auth emulator is shared, so the account does show.
-  - the seed's `users/` and `usernames/` docs sit under `demo-fridge`, so the app can't see them. A seeded user would land on Choose-username.
-- **Not affected:** security. The rules apply in both namespaces (an unauthenticated write is denied in each), and nothing reaches real Firebase.
-- **Fix options:**
-  - **Recommended:** when `USE_EMULATOR` is set, `main.dart` initializes a named app with `DefaultFirebaseOptions.currentPlatform.copyWith(projectId: 'demo-fridge')` and passes `FirebaseAuth.instanceFor(app:)` and `FirebaseFirestore.instanceFor(app:)` to `providers(...)`. It works on both platforms and keeps the `demo-` safety. Overriding the default app's options doesn't work: on Android the native default app comes from `google-services.json`, and FlutterFire ignores a different `projectId` there.
-  - Start the emulators with `--project fridge-food-managing`. It's one line, but it drops the `demo-` guarantee from [DevOps](#devops--delivery).
-- **Impact now:** Checkpoint 2's Emulator UI check works only for Auth. Use the REST check in the Slice 2 handoff for the Firestore docs.
 
 ## Open Questions
 

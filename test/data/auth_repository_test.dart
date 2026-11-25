@@ -80,4 +80,54 @@ void main() {
       throwsA(isA<AuthException>()),
     );
   });
+
+  test('AC-ID-3: Google signs in through the provider flow', () async {
+    final auth = MockFirebaseAuth(
+      mockUser: MockUser(uid: 'g1', displayName: 'Ana Google'),
+    );
+    await AuthRepository(auth).signInWithGoogle();
+
+    expect(auth.currentUser?.uid, 'g1');
+  });
+
+  test('a Google failure becomes an AuthException', () async {
+    final repo = AuthRepository(
+      ThrowingAuth('account-exists-with-different-credential'),
+    );
+
+    await expectLater(
+      repo.signInWithGoogle(),
+      throwsA(
+        isA<AuthException>().having(
+          (e) => e.failure,
+          'failure',
+          AuthFailure.accountExists,
+        ),
+      ),
+    );
+  });
+
+  group('AC-ID-8: sendPasswordReset', () {
+    test('a known email completes', () async {
+      await AuthRepository(MockFirebaseAuth()).sendPasswordReset('a@b.c');
+    });
+
+    test('an unknown email completes the same way', () async {
+      await AuthRepository(ThrowingAuth('user-not-found'))
+          .sendPasswordReset('a@b.c');
+    });
+
+    test('a malformed email fails', () async {
+      await expectLater(
+        AuthRepository(ThrowingAuth('invalid-email')).sendPasswordReset('a@'),
+        throwsA(
+          isA<AuthException>().having(
+            (e) => e.failure,
+            'failure',
+            AuthFailure.invalidEmail,
+          ),
+        ),
+      );
+    });
+  });
 }

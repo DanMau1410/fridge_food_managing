@@ -59,4 +59,16 @@ void main() {
     // Never reaches Firestore: a `/` would otherwise name another path.
     expect(await repo.uidForUsername('dan/m'), isNull);
   });
+
+  test('AC-ID-11: updateDisplayName changes only displayName', () async {
+    await repo.claimUsername('u1', 'dan_m', 'Dan');
+
+    await repo.updateDisplayName('u1', 'Daniel');
+
+    expect(await read('users/u1'), {
+      'username': 'dan_m',
+      'displayName': 'Daniel',
+    });
+    expect(await read('usernames/dan_m'), {'uid': 'u1'});
+  });
 }

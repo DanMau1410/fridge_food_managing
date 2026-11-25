@@ -25,6 +25,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accountTitle => 'Hogar y cuenta';
 
   @override
+  String get accountSection => 'Cuenta';
+
+  @override
   String get foodEmpty => 'Aún no hay alimentos. Lo que añadas aparecerá aquí.';
 
   @override
@@ -32,10 +35,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get recipesEmpty => 'Aún no hay recetas.';
-
-  @override
-  String get accountPlaceholder =>
-      'El inicio de sesión y los ajustes del hogar llegarán pronto.';
 
   @override
   String get categoryVegetables => 'Verduras';
@@ -207,4 +206,27 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get sessionError => 'No pudimos cargar tu cuenta.';
+
+  @override
+  String get editDisplayName => 'Editar nombre visible';
+
+  @override
+  String get continueWithGoogle => 'Continuar con Google';
+
+  @override
+  String get forgotPassword => '¿Olvidaste tu contraseña?';
+
+  @override
+  String get resetPasswordTitle => 'Restablece tu contraseña';
+
+  @override
+  String get resetPasswordIntro =>
+      'Te enviaremos un enlace por correo para elegir una contraseña nueva.';
+
+  @override
+  String get sendResetLink => 'Enviar enlace';
+
+  @override
+  String get resetPasswordSent =>
+      'Si alguna cuenta usa ese correo, te llegará un enlace para restablecer la contraseña. Revisa tu bandeja de entrada.';
 }

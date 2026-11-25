@@ -128,6 +128,12 @@ abstract class AppLocalizations {
   /// **'Household & account'**
   String get accountTitle;
 
+  /// Heading of the account section on the Household & account screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accountSection;
+
   /// Shown when the food inventory is empty.
   ///
   /// In en, this message translates to:
@@ -145,12 +151,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No recipes yet.'**
   String get recipesEmpty;
-
-  /// Placeholder body of the account screen.
-  ///
-  /// In en, this message translates to:
-  /// **'Sign-in and household settings are coming soon.'**
-  String get accountPlaceholder;
 
   /// Food category.
   ///
@@ -475,6 +475,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'We couldn\'t load your account.'**
   String get sessionError;
+
+  /// Tooltip of the edit button next to the display name, and the title of its dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit display name'**
+  String get editDisplayName;
+
+  /// Signs in with a Google account.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with Google'**
+  String get continueWithGoogle;
+
+  /// Opens the password reset dialog from Sign-in.
+  ///
+  /// In en, this message translates to:
+  /// **'Forgot password?'**
+  String get forgotPassword;
+
+  /// Title of the password reset dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset your password'**
+  String get resetPasswordTitle;
+
+  /// Explains the password reset dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll email you a link to choose a new password.'**
+  String get resetPasswordIntro;
+
+  /// Sends the password reset email.
+  ///
+  /// In en, this message translates to:
+  /// **'Send link'**
+  String get sendResetLink;
+
+  /// Confirmation after a reset request. Same text whether or not the account exists.
+  ///
+  /// In en, this message translates to:
+  /// **'If an account uses that email, a reset link is on its way. Check your inbox.'**
+  String get resetPasswordSent;
 }
 
 class _AppLocalizationsDelegate

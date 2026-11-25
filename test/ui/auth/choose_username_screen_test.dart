@@ -77,4 +77,23 @@ void main() {
     );
     expect(find.text('Cerrar sesión'), findsOneWidget);
   });
+
+  testWidgets('a Google name over 30 characters must be shortened', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        MockFirebaseAuth(),
+        ChooseUsernameScreen(
+          user: AppUser(uid: 'g1', displayName: 'x' * 31),
+        ),
+        db: db,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await claim(tester, 'ana');
+
+    expect(find.text('Use at most 30 characters.'), findsOneWidget);
+    expect((await db.collection('usernames').get()).size, 0);
+  });
 }
